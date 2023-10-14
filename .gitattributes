@@ -1,7 +1,0 @@
-*.mp4 filter=lfs diff=lfs merge=lfs -text
-example_movies/bench_press.mp4 filter=lfs diff=lfs merge=lfs -text
-public/example_movies/bench_press.mp4 filter=lfs diff=lfs merge=lfs -text
-example_movies/deadlift.mp4 filter=lfs diff=lfs merge=lfs -text
-example_movies/squat.mp4 filter=lfs diff=lfs merge=lfs -text
-public/example_movies/squat.mp4 filter=lfs diff=lfs merge=lfs -text
-public/example_movies/deadlift.mp4 filter=lfs diff=lfs merge=lfs -text
