@@ -79,7 +79,7 @@ Movenet의 PoseDetector는 이미지 또는 Video 엘리먼트를 인자로 받�
 
 - `movenetMainV2.ts` : 메인 로직. 해당 로직은 최초에 1회 수행된다.
 - `camera.ts` : 웹캠에서 비디오 스트림을 리턴받고 해당 비디오의 해상도 기준으로 비디오 엘리먼트와 캔버스 엘리먼트의 Width, Height를 설정한다. 해당 로직은 최초에 1회 수행된다.
-- `renderer_canvas2d.ts` : 캔버스 랜더링 관련 로직. `RendererCanvas2d` 클래스의 draw 메소드는 캔버스에 웹캠 비디오 및 스켈레톤 포즈를 렌더링한다. 스켈레톤 포즈는 개발 모드에서만 렌더링되면 Production 모드에서는 렌더링되지 않는다. `draw` 메소드는 `requestAnimationFrame`에 의해 호출된다. 상세는 `src\components\MovenetV2.tsx` 파일의 `renderPrediction` 함수를 참조할 것
+- `renderer_canvas2d.ts` : 캔버스 랜더링 관련 로직. `RendererCanvas2d` 클래스의 draw 메소드는 웹캠 비디오 및 스켈레톤 포즈를 캔버스에 드로잉한다. 화면에 보이는 영상은 비디오 엘리먼트처럼 보이지만 실제로는 해당 로직을 기반으로 캔버스상에 드로잉된 것이다. 스켈레톤 포즈는 개발 모드에서만 렌더링되며 Production 모드에서는 렌더링되지 않는다. `draw` 메소드는 `requestAnimationFrame`에 의해 호출된다. 상세는 `src\components\MovenetV2.tsx` 파일의 `renderPrediction` 함수를 참조할 것
 
 # 주의사항 1
 
