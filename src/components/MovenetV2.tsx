@@ -415,7 +415,7 @@ export function MovenetV2() {
                     opacity: "0.7",
                   }}
                 >
-                  {`${remainingRepCount}개 남았어요!`}
+                  {`${remainingRepCount}개 남았어요!`} 
                 </div>
               </div>
             )}
