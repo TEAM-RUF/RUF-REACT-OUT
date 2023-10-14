@@ -30,7 +30,7 @@ export function GuideVideo({
           workoutType === "bench_press"
             ? "/example/bench_press.mp4"
             : workoutType === "squat"
-            ? "/example/squat.mp4"
+            ? "/example_videos/squat.mp4"
             : workoutType === "deadlift"
             ? "/example/deadlift.mp4"
             : ""
