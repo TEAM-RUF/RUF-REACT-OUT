@@ -28,7 +28,7 @@ export function GuideVideo({
         className="border-[3px] border-[#0acf83]"
         src={
           workoutType === "bench_press"
-            ? "/example_videos/bench_press.mp4"
+            ? "/example_videos/bench.mp4"
             : workoutType === "squat"
             ? "/example_videos/squat.mp4"
             : workoutType === "deadlift"
