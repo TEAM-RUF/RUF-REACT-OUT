@@ -6,13 +6,15 @@
 
 ## Tech Stack
 
-- Next 13.4 (App Router)
+- node.js 18.15.0
+- Next 13.5.4 (App Router)
 - pnpm
 - tensorflow.js
   - https://www.tensorflow.org/js?hl=ko
 - MoveNet
   - https://www.tensorflow.org/hub/tutorials/movenet?hl=ko
   - lightning 모델과 thunder 모델을 지원한다. lightning 모델은 저사양 기기에서 고 fps를 구현하는데 유리하며 thunder 모델은 높은 정확도를 자랑하나 속도가 느린 특징이 있다. 본 앱에서는 lightning 모델을 사용하였다. lightning 모델은 현존하는 Pose Estimation 알고리즘 중에서 가장 빠른 속도를 자랑한다 (2023년 10월 기준)
+- 배포 플랫폼 : Vercel    
 
 ## 실서비스에 사용할 태블릿 기종
 
