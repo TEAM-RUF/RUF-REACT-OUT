@@ -423,7 +423,7 @@ export function MovenetV2() {
               ref={canvasForRotateRef}
               style={{ display: "none" }}
             ></canvas>
-            <div id="stats"></div>
+            <div id="stats" style={{display : "none"}}></div>
             <div id="scatter-gl-container"></div>
             <div
               className="w-full h-[100%] flex justify-center items-center px-0"
