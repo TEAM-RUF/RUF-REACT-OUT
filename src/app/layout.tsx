@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { FullScreenBtn } from "@/components/FullscreenBtn";
 import { Toaster } from "@/components/ui/toaster";
+import { Analytics } from '@vercel/analytics/react';
+// Vercel Analytics
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +26,7 @@ export default function RootLayout({
         <Theme>{children}</Theme>
         <FullScreenBtn />
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );

@@ -113,13 +113,13 @@ export function Ready() {
         <div className="flex flex-col items-center gap-6">
           <Image src={Logo} alt="로고" width={190} />
           <Image
-              onClick={initializeEverything}
-              src={PreviousArrow}
-              alt="이전으로 돌아가기"
-              style={{
-                visibility : currentPhase === 2 ? "visible" : "hidden"
-              }}
-            />          
+            onClick={initializeEverything}
+            src={PreviousArrow}
+            alt="이전으로 돌아가기"
+            style={{
+              visibility: currentPhase === 2 ? "visible" : "hidden"
+            }}
+          />
         </div>
       </div>
       {currentPhase === 1 && (
