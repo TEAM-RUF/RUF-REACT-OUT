@@ -30,18 +30,18 @@ export function GuideVideo({
           workoutType === "bench_press"
             ? "/example_videos/bench.mp4"
             : workoutType === "squat"
-            ? "/example_videos/squat.mp4"
-            : workoutType === "deadlift"
-            ? "/example_videos/deadlift.mp4"
-            : ""
+              ? "/example_videos/squat.mp4"
+              : workoutType === "deadlift"
+                ? "/example_videos/deadlift.mp4"
+                : ""
         }
         autoPlay={false}
         muted
         loop
         width={isReplay ? VIDEO_HEIGHT / MODIFIER : VIDEO_HEIGHT}
         height={isReplay ? VIDEO_WIDTH / MODIFIER : VIDEO_WIDTH}
-        // width={VIDEO_WIDTH}
-        // width={512}
+      // width={VIDEO_WIDTH}
+      // width={512}
       ></video>
     </div>
   );
