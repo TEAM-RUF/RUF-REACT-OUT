@@ -339,7 +339,7 @@ export function MovenetV2() {
               let numRepSetCur = numberOfRepOfThisSetRef.current;
 
               console.log(repCountCur + " " + numRepSetCur);
-              if ((repCountCur + 1) >= (numRepSetCur - 3)) {
+              if ((repCountCur + 1) >= (numRepSetCur - 3) && (repCountCur + 1) < numRepSetCur) {
                 speak(((numRepSetCur) - (repCountCur + 1)) + "개 남았어요!");
               } else {
                 speak((repCountRef.current + 1) + "개");
