@@ -69,8 +69,6 @@ export function Ready() {
       } else {
       }
     })();
-    setSpeakText("러프입니다 안녕하세요");
-    speak();
   }, []);
 
   const [options, updateOptions] = useReducer(
@@ -163,7 +161,8 @@ export function Ready() {
           <div className="w-[23%]">
             <button
               className="w-full text-xl font-bold py-4 rounded-lg bg-[#08aa6c] text-white cursor-pointer"
-              onClick={() => setCurrentPhase(2)}
+              // onClick={() => setCurrentPhase(2)}
+              onClick={speak}
             >
               다음
             </button>

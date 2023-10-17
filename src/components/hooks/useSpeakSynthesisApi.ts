@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 
 export const useSpeachSynthesisApi = () => {
 
-    const [speakText, setSpeakText] = useState<string>("");
+    const [speakText, setSpeakText] = useState<string>("안녕하세요 러프입니다. 한번 테스트해보세요");
     const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
     const [isPaused, setIsPaused] = useState<boolean>(false);
     const [isResumed, setIsResumed] = useState<boolean>(false);
@@ -11,6 +11,7 @@ export const useSpeachSynthesisApi = () => {
 
 
     const speak = useCallback(() => {
+        console.log("Speaking : " + speakText);
         var msg = new SpeechSynthesisUtterance();
 
         msg.text = <string>speakText;
