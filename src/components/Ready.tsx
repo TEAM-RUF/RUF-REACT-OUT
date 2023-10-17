@@ -19,6 +19,8 @@ import {
   workoutTimeArrAtom,
 } from "@/lib/globalState/atom";
 import { useAtom } from "jotai";
+// SpeachSynthesisApi import
+import { useSpeachSynthesisApi } from "./hooks/useSpeakSynthesisApi";
 
 const INIT_STATE = {
   workout_type: "bench_press",
@@ -26,6 +28,7 @@ const INIT_STATE = {
   numberOfRep: [10, 10, 10],
   restInterval: 10,
   isGuideVideo: false,
+
 };
 
 export type ActionType = {
@@ -37,6 +40,20 @@ export type ActionType = {
 export type ActionAndStateType = ActionType & Partial<typeof INIT_STATE>;
 
 export function Ready() {
+  // Initialize useSpeachSynthesisApi 
+  const {
+    speakText,
+    setSpeakText,
+    isSpeaking,
+    isPaused,
+    isResumed,
+    isEnded,
+    speak,
+    pause,
+    resume,
+    cancel,
+  } = useSpeachSynthesisApi();
+
   const router = useRouter();
   const [currentPhase, setCurrentPhase] = useState<1 | 2>(1);
   const [, setRecordedVideoBlobArr] = useAtom(recordedVideoBlobArrAtom);
@@ -52,6 +69,8 @@ export function Ready() {
       } else {
       }
     })();
+    setSpeakText("러프입니다 안녕하세요");
+    speak();
   }, []);
 
   const [options, updateOptions] = useReducer(
