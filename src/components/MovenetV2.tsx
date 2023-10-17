@@ -51,7 +51,7 @@ export function MovenetV2() {
   const repCountRef = useRef<number>(repCount);
   repCountRef.current = repCount;
 
-  const currentWorkoutSetRef = useRef<number>(0);
+  const currentWorkoutSetRef = useRef<number>(1);
   const startTimeRef = useRef<number>(0);
   const [isCountdownFinished, setIsCountdownFinished] = useState(false);
   const isCountdownFinishedRef = useRef<boolean>(false);
@@ -159,7 +159,7 @@ export function MovenetV2() {
     } else {
       setIsCountdownFinished(false);
       currentWorkoutSetRef.current += 1;
-      setRepCount(1);
+      setRepCount(0);
     }
   };
 
