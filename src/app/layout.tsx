@@ -27,7 +27,6 @@ export default function RootLayout({
         <FullScreenBtn />
         <Toaster />
         <Analytics />
-        <script src="https://code.responsivevoice.org/responsivevoice.js?key=UNPi4Kwz"></script>
       </body>
     </html>
   );

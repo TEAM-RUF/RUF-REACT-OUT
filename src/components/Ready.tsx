@@ -42,8 +42,6 @@ export type ActionAndStateType = ActionType & Partial<typeof INIT_STATE>;
 export function Ready() {
   // Initialize useSpeachSynthesisApi 
   const {
-    speakText,
-    setSpeakText,
     isSpeaking,
     isPaused,
     isResumed,
@@ -161,8 +159,7 @@ export function Ready() {
           <div className="w-[23%]">
             <button
               className="w-full text-xl font-bold py-4 rounded-lg bg-[#08aa6c] text-white cursor-pointer"
-              // onClick={() => setCurrentPhase(2)}
-              onClick={speak}
+              onClick={() => setCurrentPhase(2)}
             >
               다음
             </button>
