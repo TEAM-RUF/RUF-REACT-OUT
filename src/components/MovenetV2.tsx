@@ -335,6 +335,7 @@ export function MovenetV2() {
             localStorage.setItem("workoutState", changedState);
 
             if (isCounterUp) {
+              speak((repCountRef.current + 1) + " 개");
               if (repCountRef.current + 1 >= numberOfRepOfThisSetRef.current) {
                 goToNextSet();
               } else {
