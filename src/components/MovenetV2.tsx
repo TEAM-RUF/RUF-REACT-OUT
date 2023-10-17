@@ -335,7 +335,16 @@ export function MovenetV2() {
             localStorage.setItem("workoutState", changedState);
 
             if (isCounterUp) {
-              speak((repCountRef.current + 1) + "개");
+              let repCountCur = repCountRef.current;
+              let numRepSetCur = numberOfRepOfThisSetRef.current;
+
+              console.log(repCountCur + " " + numRepSetCur);
+              if ((repCountCur + 1) >= (numRepSetCur - 3)) {
+                speak(((numRepSetCur) - (repCountCur + 1)) + "개 남았어요!");
+              } else {
+                speak((repCountRef.current + 1) + "개");
+              }
+
               if (repCountRef.current + 1 >= numberOfRepOfThisSetRef.current) {
                 goToNextSet();
               } else {
