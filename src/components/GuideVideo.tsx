@@ -23,26 +23,23 @@ export function GuideVideo({
       >
         Guide
       </div>
-      <video
-        ref={guideVideoRef}
+      <iframe
         className="border-[3px] border-[#0acf83]"
         src={
           workoutType === "bench_press"
-            ? "/example_videos/bench.mp4"
+            ? "http://www.youtube.com/embed/1wbsM7vYB3U?autoplay=1&loop=1&mute=1&playlist=1wbsM7vYB3U"
             : workoutType === "squat"
-              ? "/example_videos/squat.mp4"
+              ? "http://www.youtube.com/embed/mKMlhY2FIwc?autoplay=1&loop=1&mute=1&playlist=mKMlhY2FIwc"
               : workoutType === "deadlift"
-                ? "/example_videos/deadlift.mp4"
+                ? "http://www.youtube.com/embed/eCu0ELMje3Y?autoplay=1&loop=1&mute=1&playlist=eCu0ELMje3Y"
                 : ""
         }
-        autoPlay={false}
-        muted
-        loop
+        allow="autoplay;"
         width={isReplay ? VIDEO_HEIGHT / MODIFIER : VIDEO_HEIGHT}
         height={isReplay ? VIDEO_WIDTH / MODIFIER : VIDEO_WIDTH}
       // width={VIDEO_WIDTH}
       // width={512}
-      ></video>
+      ></iframe >
     </div>
   );
 }
