@@ -37,6 +37,8 @@ import {
   MODIFIER,
   MULTIPLIER_BASED_ON_DEVICE_WIDTH,
 } from "@/lib/movenet/params";
+// SpeachSynthesisApi import
+import { useSpeachSynthesisApi } from "./hooks/useSpeakSynthesisApi";
 
 export function MovenetV2() {
   const [mediaDeviceArr, setMediaDeviceArr] = useState<MediaDeviceInfo[]>([]);
@@ -86,6 +88,26 @@ export function MovenetV2() {
     videoStreamChunksRef,
     canvasForRotateRef,
   } = useRefsForMovenet();
+
+  // Initialize useSpeachSynthesisApi 
+  const {
+    isSpeaking,
+    isPaused,
+    isResumed,
+    isEnded,
+    speak,
+    pause,
+    resume,
+    cancel,
+  } = useSpeachSynthesisApi();
+
+  const hasLoaded = useRef<boolean>(false);
+  useEffect(() => {
+    if (!hasLoaded.current) {
+      speak("운동을 시작해볼까요?");
+      hasLoaded.current = true;
+    }
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -222,7 +244,6 @@ export function MovenetV2() {
       } else if (workoutType === "squat") {
         localStorage.setItem("workoutState", "UP");
       }
-
       renderPrediction();
     })();
 
@@ -257,7 +278,7 @@ export function MovenetV2() {
       if (detectorRef.current != null) {
         startInferenceTimeRef.current = beginEstimatePosesStats();
 
-        if (workoutType === "bench_press") {          
+        if (workoutType === "bench_press") {
           ctx.translate(
             videoRef.current!.videoWidth,
             videoRef.current!.videoHeight
@@ -314,6 +335,7 @@ export function MovenetV2() {
             localStorage.setItem("workoutState", changedState);
 
             if (isCounterUp) {
+              speak((repCountRef.current + 1) + " 개");
               if (repCountRef.current + 1 >= numberOfRepOfThisSetRef.current) {
                 goToNextSet();
               } else {
@@ -407,15 +429,15 @@ export function MovenetV2() {
                       workoutType === "bench_press" && isGuideVideo
                         ? `${25 * MODIFIER}dvw`
                         : workoutType === "bench_press" && !isGuideVideo
-                        ? "50dvw"
-                        : isGuideVideo
-                        ? "35dvw"
-                        : "50dvw",
+                          ? "50dvw"
+                          : isGuideVideo
+                            ? "35dvw"
+                            : "50dvw",
                     transform: "translateX(-50%)",
                     opacity: "0.7",
                   }}
                 >
-                  {`${remainingRepCount}개 남았어요!`} 
+                  {`${remainingRepCount}개 남았어요!`}
                 </div>
               </div>
             )}
@@ -423,7 +445,7 @@ export function MovenetV2() {
               ref={canvasForRotateRef}
               style={{ display: "none" }}
             ></canvas>
-            <div id="stats" style={{display : "none"}}></div>
+            <div id="stats" style={{ display: "none" }}></div>
             <div id="scatter-gl-container"></div>
             <div
               className="w-full h-[100%] flex justify-center items-center px-0"
@@ -442,9 +464,8 @@ export function MovenetV2() {
                     style={{
                       transform:
                         workoutType === "bench_press"
-                          ? `translateY(-${
-                              200 * MULTIPLIER_BASED_ON_DEVICE_WIDTH
-                            }px)`
+                          ? `translateY(-${200 * MULTIPLIER_BASED_ON_DEVICE_WIDTH
+                          }px)`
                           : "",
                     }}
                   >
