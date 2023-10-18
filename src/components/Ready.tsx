@@ -26,7 +26,7 @@ const INIT_STATE = {
   workout_type: "bench_press",
   numberOfSet: 3,
   numberOfRep: [10, 10, 10],
-  restInterval: 10,
+  restInterval: 40,
   isGuideVideo: false,
 
 };
