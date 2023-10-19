@@ -175,6 +175,18 @@ export function MovenetV2() {
       videoStreamChunksRef.current.push(event.data);
     };
 
+    //랜덤토큰 생성로직
+    function generateRandomString(length: number): string {
+      const charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * charset.length);
+        result += charset[randomIndex];
+      }
+      return result;
+    }
+
+    // onStop시 blob을 통해 videoStreamChunksRef 저장
     mediaStreamInstance.onstop = async () => {
       const blob = new Blob(videoStreamChunksRef.current);
 
@@ -183,6 +195,16 @@ export function MovenetV2() {
         return newArr;
       });
       videoStreamChunksRef.current = [];
+
+      // setRecordedVideoBlobArr에 저장한 이후에 서버로 전송하는 작업 수행
+      const videoName = generateRandomString(10) + "_"
+        + workoutType + "_" + currentWorkoutSetRef.current + ".mp4";
+
+      const myFile = new File(
+        [blob],
+        videoName,
+        { type: 'video/mp4' }
+      );
     };
 
     startTimeRef.current = performance.now();
