@@ -1,5 +1,6 @@
 "use client";
 
+import axios from 'axios';
 import { Countdown } from "@/components/Countdown";
 import { settingMovenetV2 } from "@/lib/movenet/movenetMainV2";
 import {
@@ -200,11 +201,36 @@ export function MovenetV2() {
       const videoName = generateRandomString(10) + "_"
         + workoutType + "_" + currentWorkoutSetRef.current + ".mp4";
 
-      const myFile = new File(
+      const newVideoFile = new File(
         [blob],
         videoName,
         { type: 'video/mp4' }
       );
+
+      //form-data body
+      const formData = new FormData();
+      formData.append("file", newVideoFile);
+      formData.append("workout", workoutType);
+      formData.append("set", currentWorkoutSetRef.current.toString());
+      formData.append("userToken", "TEST_TOKEN");
+      const transport = axios.create({ withCredentials: true });
+
+      transport
+        .post(process.env.NEXT_PUBLIC_LOCAL_HOST + "/video/upload", {
+          headers: {
+            "Content-Type": "multipart/form-data",
+
+            "Access-Control-Allow-Origin": `http://localhost:3000`,
+            "Access-Control-Allow-Credentials": "true",
+          },
+          timeout: 0
+        })
+        .then(res => {
+          console.log(res.data);
+        })
+        .catch(error => {
+          console.log(error);
+        });
     };
 
     startTimeRef.current = performance.now();
