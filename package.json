@@ -35,6 +35,8 @@
     "next": "13.5.4",
     "pnpm": "^8.9.2",
     "postcss": "8.4.31",
+    "qrcode": "^1.5.3",
+    "qrcode-generator": "^1.4.4",
     "react": "18.2.0",
     "react-countdown-circle-timer": "^3.2.1",
     "react-dom": "18.2.0",

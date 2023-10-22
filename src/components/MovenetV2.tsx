@@ -216,12 +216,9 @@ export function MovenetV2() {
       const transport = axios.create({ withCredentials: true });
 
       transport
-        .post(process.env.NEXT_PUBLIC_LOCAL_HOST + "/video/upload", {
+        .post(process.env.NEXT_PUBLIC_LOCAL_HOST + "/video/upload", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
-
-            "Access-Control-Allow-Origin": `http://localhost:3000`,
-            "Access-Control-Allow-Credentials": "true",
           },
           timeout: 0
         })
