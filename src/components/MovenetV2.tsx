@@ -22,10 +22,11 @@ import { Pose, PoseDetector } from "@tensorflow-models/pose-detection";
 import { RendererCanvas2d } from "@/lib/movenet/renderer_canvas2d";
 import { judgePoseForBenchpress } from "@/lib/counterLogic/benchPress";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAtom } from "jotai";
+import { atom, useAtom } from "jotai";
 import {
   recordedVideoBlobArrAtom,
   workoutTimeArrAtom,
+  fileNameArrayAtom,
 } from "@/lib/globalState/atom";
 import { toast, useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
@@ -175,6 +176,10 @@ export function MovenetV2() {
     return result;
   }
 
+  // jotai atom으로 fileName State 관리
+  const [fileNameArray, setFileNameArray] = useAtom(fileNameArrayAtom);
+
+
   const startRecord = () => {
     if (!videoRef.current) return;
     if (videoRef.current.srcObject == null) return;
@@ -200,6 +205,12 @@ export function MovenetV2() {
       // setRecordedVideoBlobArr에 저장한 이후에 서버로 전송하는 작업 수행
       const videoName = generateRandomString(10) + "_"
         + workoutType + "_" + currentWorkoutSetRef.current + ".mp4";
+
+      // videoName을 전역 State에 저장
+      setFileNameArray((prev) => {
+        const newArr = [...prev, videoName];
+        return newArr;
+      });
 
       const newVideoFile = new File(
         [blob],

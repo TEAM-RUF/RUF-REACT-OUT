@@ -18,11 +18,9 @@ import {
   recordedVideoBlobArrAtom,
   workoutTimeArrAtom,
 } from "@/lib/globalState/atom";
-import { useAtom } from "jotai";
+import { atom, useAtom } from "jotai";
 // SpeachSynthesisApi import
 import { useSpeachSynthesisApi } from "./hooks/useSpeakSynthesisApi";
-
-import QRCode from 'qrcode-generator';
 
 const INIT_STATE = {
   workout_type: "bench_press",
@@ -124,48 +122,6 @@ export function Ready() {
     updateOptions({ type: "INITIALIZE" });
   };
 
-
-  const qrCodeRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const generateQRCode = () => {
-      const url = 'https://example.com'; // 원하는 URL을 여기에 입력
-
-      if (qrCodeRef.current) {
-        try {
-          const qr = QRCode(0, 'L'); // QR 코드 생성
-          qr.addData(url);
-          qr.make();
-
-          // QR 코드 크기 설정
-          const size = 200; // 원하는 크기로 조정 (예: 200px)
-
-          // Canvas에 QR 코드 그리기
-          const canvas = qrCodeRef.current;
-          canvas.width = size; // Canvas의 폭 설정
-          canvas.height = size; // Canvas의 높이 설정
-          const context = canvas.getContext('2d');
-          if (context) {
-            const moduleCount = qr.getModuleCount();
-            const cellSize = size / moduleCount;
-
-            for (let row = 0; row < moduleCount; row++) {
-              for (let col = 0; col < moduleCount; col++) {
-                context.fillStyle = qr.isDark(row, col) ? 'black' : 'white';
-                context.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error generating QR code:', error);
-        }
-      }
-    };
-
-    generateQRCode();
-  }, []);
-
-
   return (
     <div className="w-screen h-screen flex flex-col items-center justify-center gap-10 text-3xl bg-black">
       <div className="fixed w-full px-10 py-4 top-0 left-0 flex items-center justify-between">
@@ -181,9 +137,7 @@ export function Ready() {
           />
         </div>
       </div>
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-        <canvas ref={qrCodeRef} id="qr-code" />
-      </div>
+
       {currentPhase === 1 && (
         <>
           <Select
