@@ -57,6 +57,7 @@ export function MovenetV2() {
   const startTimeRef = useRef<number>(0);
   const [isCountdownFinished, setIsCountdownFinished] = useState(false);
   const isCountdownFinishedRef = useRef<boolean>(false);
+  let curVideoBlobArr = useRef<Blob>(new Blob());
   isCountdownFinishedRef.current = isCountdownFinished;
 
   const { workoutType, numberOfSet, numberOfRep, restInterval, isGuideVideo } =
@@ -149,6 +150,12 @@ export function MovenetV2() {
 
     stopRecord();
 
+    // // Next Step으로 넘어가기 전에 Blob 정보 저장
+    // const blob = new Blob(videoStreamChunksRef.current);
+    // curVideoBlobArr.current = blob;
+    // console.log("goToNextSet Blob Size " + blob);
+    // console.log("goToNextSet Blob Size " + curVideoBlobArr.current.size);
+
     if (currentWorkoutSetRef.current + 1 > numberOfSet) {
       const searchParams = new URLSearchParams({
         numberOfSet,
@@ -179,7 +186,6 @@ export function MovenetV2() {
   // jotai atom으로 fileName State 관리
   const [fileNameArray, setFileNameArray] = useAtom(fileNameArrayAtom);
 
-
   const startRecord = () => {
     if (!videoRef.current) return;
     if (videoRef.current.srcObject == null) return;
@@ -195,6 +201,9 @@ export function MovenetV2() {
     // onStop시 blob을 통해 videoStreamChunksRef 저장
     mediaStreamInstance.onstop = async () => {
       const blob = new Blob(videoStreamChunksRef.current);
+      curVideoBlobArr.current = blob;
+      console.log("onStop Blob Size " + blob);
+      console.log("onStop Blob Size " + curVideoBlobArr.current.size);
 
       setRecordedVideoBlobArr((prev) => {
         const newArr = [...prev, blob];
@@ -473,6 +482,15 @@ export function MovenetV2() {
           <Countdown
             countdownDuration={
               currentWorkoutSetRef.current === 1 ? 3 : restInterval
+            }
+            currentWorkoutSet={
+              currentWorkoutSetRef.current
+            }
+            recordedVideoBlob={
+              curVideoBlobArr.current
+            }
+            workoutType={
+              workoutType
             }
             setIsCountdownFinished={setIsCountdownFinished}
           />
