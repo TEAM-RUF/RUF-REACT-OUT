@@ -227,7 +227,7 @@ export function MovenetV2() {
       const transport = axios.create({ withCredentials: true });
 
       transport
-        .post(process.env.NEXT_PUBLIC_LOCAL_HOST + "/video/upload", formData, {
+        .post(process.env.NEXT_PUBLIC_BACKEND_HOST + "/video/upload", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
