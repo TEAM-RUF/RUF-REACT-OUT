@@ -1,5 +1,6 @@
 "use client";
 
+import axios from 'axios';
 import { Countdown } from "@/components/Countdown";
 import { settingMovenetV2 } from "@/lib/movenet/movenetMainV2";
 import {
@@ -21,10 +22,11 @@ import { Pose, PoseDetector } from "@tensorflow-models/pose-detection";
 import { RendererCanvas2d } from "@/lib/movenet/renderer_canvas2d";
 import { judgePoseForBenchpress } from "@/lib/counterLogic/benchPress";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAtom } from "jotai";
+import { atom, useAtom } from "jotai";
 import {
   recordedVideoBlobArrAtom,
   workoutTimeArrAtom,
+  fileNameArrayAtom,
 } from "@/lib/globalState/atom";
 import { toast, useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
@@ -174,6 +176,10 @@ export function MovenetV2() {
     return result;
   }
 
+  // jotai atom으로 fileName State 관리
+  const [fileNameArray, setFileNameArray] = useAtom(fileNameArrayAtom);
+
+
   const startRecord = () => {
     if (!videoRef.current) return;
     if (videoRef.current.srcObject == null) return;
@@ -200,11 +206,39 @@ export function MovenetV2() {
       const videoName = generateRandomString(10) + "_"
         + workoutType + "_" + currentWorkoutSetRef.current + ".mp4";
 
-      const myFile = new File(
+      // videoName을 전역 State에 저장
+      setFileNameArray((prev) => {
+        const newArr = [...prev, videoName];
+        return newArr;
+      });
+
+      const newVideoFile = new File(
         [blob],
         videoName,
         { type: 'video/mp4' }
       );
+
+      //form-data body
+      const formData = new FormData();
+      formData.append("file", newVideoFile);
+      formData.append("workout", workoutType);
+      formData.append("set", currentWorkoutSetRef.current.toString());
+      formData.append("userToken", "TEST_TOKEN");
+      const transport = axios.create({ withCredentials: true });
+
+      transport
+        .post(process.env.NEXT_PUBLIC_BACKEND_HOST + "/video/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          timeout: 0
+        })
+        .then(res => {
+          console.log(res.data);
+        })
+        .catch(error => {
+          console.log(error);
+        });
     };
 
     startTimeRef.current = performance.now();

@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Counter } from "./ui/Counter";
 import { TITLE_FOR_DISPLAY_OBJ } from "@/lib/utils";
@@ -18,7 +18,7 @@ import {
   recordedVideoBlobArrAtom,
   workoutTimeArrAtom,
 } from "@/lib/globalState/atom";
-import { useAtom } from "jotai";
+import { atom, useAtom } from "jotai";
 // SpeachSynthesisApi import
 import { useSpeachSynthesisApi } from "./hooks/useSpeakSynthesisApi";
 
@@ -137,6 +137,7 @@ export function Ready() {
           />
         </div>
       </div>
+
       {currentPhase === 1 && (
         <>
           <Select
