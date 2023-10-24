@@ -356,7 +356,7 @@ export function ReplayImpl() {
                   className="border-[3px] border-[#0acf83]"
                   src={recordedVideoURL}
                   controls={false}
-                  width={isGuideVideo ? VIDEO_WIDTH : VIDEO_WIDTH / MODIFIER}
+                  width={VIDEO_WIDTH / MODIFIER}
                 ></video>
               </div>
             </div>
