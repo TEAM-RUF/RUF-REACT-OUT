@@ -5,7 +5,6 @@ import { Keypoint } from "@tensorflow-models/pose-detection";
 
 const ANGLE_DOWN_THRESHOLD = 100;
 const ANGLE_UP_THRESHOLD = 140;
-
 export function calculateAngleForSquat({
   ankleX,
   ankleY,
@@ -90,6 +89,16 @@ export function judgePoseForSquat({ keypoints }: { keypoints: Keypoint[] }) {
     });
   }
 
+  // roen1024 아래 문단
+  let kneeWarning = null;
+  if (keypointsObj.right_knee && keypointsObj.right_ankle && keypointsObj.right_knee.x - keypointsObj.right_ankle.x > KNEE_THRESHOLD) {
+    kneeWarning = "무릎!";
+    console.log("무릎!");
+  } else if (keypointsObj.left_knee && keypointsObj.left_ankle && keypointsObj.left_knee.x - keypointsObj.left_ankle.x > KNEE_THRESHOLD) {
+    kneeWarning = "무릎!";
+    console.log("무릎!");
+  }
+  
   const workoutState = localStorage.getItem("workoutState");
   if (workoutState === "DOWN" && userAngle && userAngle > ANGLE_UP_THRESHOLD) {
     return {
@@ -104,11 +113,13 @@ export function judgePoseForSquat({ keypoints }: { keypoints: Keypoint[] }) {
     return {
       isCounterUp: false,
       changedState: "DOWN",
+      warning: kneeWarning, // roen1024
     };
   } else {
     return {
       isCounterUp: false,
       changedState: null,
+      warning: kneeWarning, // roen1024
     };
   }
 }
