@@ -359,20 +359,6 @@ export function ReplayImpl() {
                   width={isGuideVideo ? VIDEO_WIDTH : VIDEO_WIDTH / MODIFIER}
                 ></video>
               </div>
-              {isGuideVideo && (
-                <div className="w-full relative flex justify-center">
-                  <div className="w-[100%] absolute flex justify-center pt-5 pb-5 text-white text-4xl font-bold">
-                    Guide
-                  </div>
-                  <div className="" onClick={switchPlayState}>
-                    <GuideVideo
-                      guideVideoRef={guideVideoRef}
-                      workoutType={workoutType}
-                      isReplay
-                    />
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
