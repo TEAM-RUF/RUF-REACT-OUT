@@ -114,6 +114,7 @@ export function judgePoseForSquat({ keypoints }: { keypoints: Keypoint[] }) {
       isCounterUp: false,
       changedState: "DOWN",
       warning: kneeWarning, // roen1024
+      // 안녕!
     };
   } else {
     return {
