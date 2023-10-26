@@ -231,7 +231,7 @@ export function ReplayImpl() {
   const qrCodeRef = useRef<HTMLCanvasElement>(null);
 
   const generateQRCode = (filename: string) => {
-    const url = process.env.NEXT_PUBLIC_BACKEND_HOST + '/video/stream?filename=' + filename;
+    const url = process.env.NEXT_PUBLIC_BACKEND_HOST + '/video?filename=' + filename;
 
     if (qrCodeRef.current) {
       try {
