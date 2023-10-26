@@ -1,6 +1,6 @@
 "use client";
 
-import axios from 'axios';
+import axios from "axios";
 import { Countdown } from "@/components/Countdown";
 import { settingMovenetV2 } from "@/lib/movenet/movenetMainV2";
 import {
@@ -43,6 +43,7 @@ import {
 import { useSpeachSynthesisApi } from "./hooks/useSpeakSynthesisApi";
 
 export function MovenetV2() {
+  const [incorrectState, setIncorrectState] = useState<"SQUAT_KNEE" | "">("");
   const [mediaDeviceArr, setMediaDeviceArr] = useState<MediaDeviceInfo[]>([]);
   const router = useRouter();
   const [, setRecordedVideoBlobArr] = useAtom(recordedVideoBlobArrAtom);
@@ -92,7 +93,7 @@ export function MovenetV2() {
     canvasForRotateRef,
   } = useRefsForMovenet();
 
-  // Initialize useSpeachSynthesisApi 
+  // Initialize useSpeachSynthesisApi
   const {
     isSpeaking,
     isPaused,
@@ -174,8 +175,9 @@ export function MovenetV2() {
 
   //랜덤토큰 생성로직
   function generateRandomString(length: number): string {
-    const charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let result = '';
+    const charset =
+      "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let result = "";
     for (let i = 0; i < length; i++) {
       const randomIndex = Math.floor(Math.random() * charset.length);
       result += charset[randomIndex];
@@ -212,8 +214,13 @@ export function MovenetV2() {
       videoStreamChunksRef.current = [];
 
       // setRecordedVideoBlobArr에 저장한 이후에 서버로 전송하는 작업 수행
-      const videoName = generateRandomString(10) + "_"
-        + workoutType + "_" + currentWorkoutSetRef.current + ".mp4";
+      const videoName =
+        generateRandomString(10) +
+        "_" +
+        workoutType +
+        "_" +
+        currentWorkoutSetRef.current +
+        ".mp4";
 
       // videoName을 전역 State에 저장
       setFileNameArray((prev) => {
@@ -221,11 +228,7 @@ export function MovenetV2() {
         return newArr;
       });
 
-      const newVideoFile = new File(
-        [blob],
-        videoName,
-        { type: 'video/mp4' }
-      );
+      const newVideoFile = new File([blob], videoName, { type: "video/mp4" });
 
       //form-data body
       const formData = new FormData();
@@ -236,16 +239,20 @@ export function MovenetV2() {
       const transport = axios.create({ withCredentials: true });
 
       transport
-        .post(process.env.NEXT_PUBLIC_BACKEND_HOST + "/video/upload", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          timeout: 0
-        })
-        .then(res => {
+        .post(
+          process.env.NEXT_PUBLIC_BACKEND_HOST + "/video/upload",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            timeout: 0,
+          }
+        )
+        .then((res) => {
           console.log(res.data);
         })
-        .catch(error => {
+        .catch((error) => {
           console.log(error);
         });
     };
@@ -389,6 +396,13 @@ export function MovenetV2() {
 
             changedState = judgeResult.changedState;
             isCounterUp = judgeResult.isCounterUp;
+
+            if (judgeResult.incorrectState) {
+              setIncorrectState(judgeResult.incorrectState);
+              setTimeout(() => {
+                setIncorrectState("");
+              }, 2000);
+            }
           }
 
           if (changedState) {
@@ -404,10 +418,13 @@ export function MovenetV2() {
               let numRepSetCur = numberOfRepOfThisSetRef.current;
 
               console.log(repCountCur + " " + numRepSetCur);
-              if ((repCountCur + 1) >= (numRepSetCur - 3) && (repCountCur + 1) < numRepSetCur) {
-                speak(((numRepSetCur) - (repCountCur + 1)) + "개 남았어요!");
+              if (
+                repCountCur + 1 >= numRepSetCur - 3 &&
+                repCountCur + 1 < numRepSetCur
+              ) {
+                speak(numRepSetCur - (repCountCur + 1) + "개 남았어요!");
               } else {
-                speak((repCountRef.current + 1) + "개");
+                speak(repCountRef.current + 1 + "개");
               }
 
               if (repCountRef.current + 1 >= numberOfRepOfThisSetRef.current) {
@@ -483,15 +500,9 @@ export function MovenetV2() {
             countdownDuration={
               currentWorkoutSetRef.current === 1 ? 3 : restInterval
             }
-            currentWorkoutSet={
-              currentWorkoutSetRef.current
-            }
-            recordedVideoBlob={
-              curVideoBlobArr.current
-            }
-            workoutType={
-              workoutType
-            }
+            currentWorkoutSet={currentWorkoutSetRef.current}
+            recordedVideoBlob={curVideoBlobArr.current}
+            workoutType={workoutType}
             setIsCountdownFinished={setIsCountdownFinished}
           />
         )}
@@ -502,25 +513,33 @@ export function MovenetV2() {
               display: isCountdownFinished ? "block" : "none",
             }}
           >
-            {remainingRepCount <= 3 && (
+            {(remainingRepCount <= 3 || incorrectState.length > 0) && (
               <div className="z-[1000] relative">
                 <div
-                  className="absolute border-4 border-[#6a66fa] text-[#6a66fa] bg-white text-center rounded-xl text-3xl font-bold px-6 py-2 w-[25%] left-0  "
+                  className={
+                    remainingRepCount <= 3
+                      ? "absolute border-4 border-[#6a66fa] text-[#6a66fa] bg-white text-center rounded-xl text-3xl font-bold px-6 py-2 w-[25%] left-0"
+                      : "absolute border-4 border-[#fa6666] text-[#fa6666] bg-white text-center rounded-xl text-3xl font-bold px-6 py-2 w-[25%] left-0"
+                  }
                   style={{
                     top: `${73 * MODIFIER}dvh`,
                     left:
                       workoutType === "bench_press" && isGuideVideo
                         ? `${25 * MODIFIER}dvw`
                         : workoutType === "bench_press" && !isGuideVideo
-                          ? "50dvw"
-                          : isGuideVideo
-                            ? "35dvw"
-                            : "50dvw",
+                        ? "50dvw"
+                        : isGuideVideo
+                        ? "35dvw"
+                        : "50dvw",
                     transform: "translateX(-50%)",
                     opacity: "0.7",
                   }}
                 >
-                  {`${remainingRepCount}개 남았어요!`}
+                  {incorrectState === "SQUAT_KNEE"
+                    ? "무릎 주의 !"
+                    : remainingRepCount <= 3
+                    ? `${remainingRepCount}개 남았어요!`
+                    : ""}
                 </div>
               </div>
             )}
@@ -547,8 +566,9 @@ export function MovenetV2() {
                     style={{
                       transform:
                         workoutType === "bench_press"
-                          ? `translateY(-${200 * MULTIPLIER_BASED_ON_DEVICE_WIDTH
-                          }px)`
+                          ? `translateY(-${
+                              200 * MULTIPLIER_BASED_ON_DEVICE_WIDTH
+                            }px)`
                           : "",
                     }}
                   >
