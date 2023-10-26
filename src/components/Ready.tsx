@@ -17,6 +17,7 @@ import { TITLE_FOR_DISPLAY_OBJ } from "@/lib/utils";
 import {
   recordedVideoBlobArrAtom,
   workoutTimeArrAtom,
+  fileNameArrayAtom,
 } from "@/lib/globalState/atom";
 import { atom, useAtom } from "jotai";
 // SpeachSynthesisApi import
@@ -56,11 +57,13 @@ export function Ready() {
   const [currentPhase, setCurrentPhase] = useState<1 | 2>(1);
   const [, setRecordedVideoBlobArr] = useAtom(recordedVideoBlobArrAtom);
   const [, setWorkoutTimeArr] = useAtom(workoutTimeArrAtom);
+  const [, setFileNameArr] = useAtom(fileNameArrayAtom);
 
   useEffect(function initialize() {
     (async () => {
       setRecordedVideoBlobArr([]);
       setWorkoutTimeArr([]);
+      setFileNameArr([]);
       const res = await navigator.permissions.query({ name: "camera" as any });
       if (res.state !== "granted") {
         navigator.mediaDevices.getUserMedia({ video: true });
