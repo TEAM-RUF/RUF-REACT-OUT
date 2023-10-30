@@ -5,6 +5,7 @@ import { Keypoint } from "@tensorflow-models/pose-detection";
 
 const ANGLE_DOWN_THRESHOLD = 100;
 const ANGLE_UP_THRESHOLD = 140;
+const INCORRENT_KNEE_GRADIENT_THRESHOLD = 1.5;
 
 export function calculateAngleForSquat({
   ankleX,
@@ -21,7 +22,6 @@ export function calculateAngleForSquat({
   ankleX: number;
   ankleY: number;
 }) {
-
   const radians =
     Math.atan2(ankleX - kneeX, ankleY - kneeY) -
     Math.atan2(hipX - kneeX, hipY - kneeY);
@@ -32,27 +32,29 @@ export function calculateAngleForSquat({
   return angle;
 }
 
-export function judgePoseForSquat({ keypoints }: { keypoints: Keypoint[] }) {
-  type KeypointsObjType = {
-    nose: Keypoint;
-    left_eye: Keypoint;
-    right_eye: Keypoint;
-    left_ear: Keypoint;
-    right_ear: Keypoint;
-    left_shoulder: Keypoint;
-    right_shoulder: Keypoint;
-    left_elbow: Keypoint;
-    right_elbow: Keypoint;
-    left_wrist: Keypoint;
-    right_wrist: Keypoint;
-    left_hip: Keypoint;
-    right_hip: Keypoint;
-    left_knee: Keypoint;
-    right_knee: Keypoint;
-    left_ankle: Keypoint;
-    right_ankle: Keypoint;
-  };
+type KeypointProps = { keypoints: Keypoint[] };
 
+type KeypointsObjType = {
+  nose: Keypoint;
+  left_eye: Keypoint;
+  right_eye: Keypoint;
+  left_ear: Keypoint;
+  right_ear: Keypoint;
+  left_shoulder: Keypoint;
+  right_shoulder: Keypoint;
+  left_elbow: Keypoint;
+  right_elbow: Keypoint;
+  left_wrist: Keypoint;
+  right_wrist: Keypoint;
+  left_hip: Keypoint;
+  right_hip: Keypoint;
+  left_knee: Keypoint;
+  right_knee: Keypoint;
+  left_ankle: Keypoint;
+  right_ankle: Keypoint;
+};
+
+export function judgePoseForSquat({ keypoints }: KeypointProps) {
   const keypointsObj = keypoints.reduce((acc, cur) => {
     if (cur.score != null && cur.score > 0.5) {
       return Object.assign({ [cur.name!]: cur }, acc);
@@ -60,6 +62,16 @@ export function judgePoseForSquat({ keypoints }: { keypoints: Keypoint[] }) {
       return acc;
     }
   }, {}) as KeypointsObjType;
+
+  const isIncorrectKnee = judgeIsIncorrectKnee({ keypointsObj });
+
+  if (isIncorrectKnee) {
+    return {
+      isCounterUp: false,
+      changedState: null,
+      incorrectState: "SQUAT_KNEE" as const,
+    };
+  }
 
   let userAngle;
   if (
@@ -111,4 +123,29 @@ export function judgePoseForSquat({ keypoints }: { keypoints: Keypoint[] }) {
       changedState: null,
     };
   }
+}
+
+function judgeIsIncorrectKnee({
+  keypointsObj: { left_knee, right_knee, left_ankle, right_ankle },
+}: {
+  keypointsObj: KeypointsObjType;
+}) {
+  let deltaY: number | undefined;
+  let deltaX: number | undefined;
+
+  if (left_knee && left_ankle) {
+    deltaY = left_ankle.y - left_knee.y;
+    deltaX = left_ankle.x - left_knee.x;
+  } else if (right_knee && right_ankle) {
+    deltaY = right_ankle.y - right_knee.y;
+    deltaX = right_ankle.x - right_knee.x;
+  }
+
+  if (typeof deltaY === "number" && typeof deltaX === "number") {
+    const computed_knee_gradient = Math.abs(deltaY / deltaX);
+    if (INCORRENT_KNEE_GRADIENT_THRESHOLD > computed_knee_gradient) {
+      console.log("INCORRECT POSE");
+      return true;
+    } else return false;
+  } else return false;
 }
