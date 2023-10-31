@@ -105,6 +105,7 @@ export function MovenetV2() {
     cancel,
   } = useSpeachSynthesisApi();
 
+  const incorrectSpeakState = useRef<boolean>(false);
   const hasLoaded = useRef<boolean>(false);
   useEffect(() => {
     if (!hasLoaded.current) {
@@ -397,11 +398,16 @@ export function MovenetV2() {
             changedState = judgeResult.changedState;
             isCounterUp = judgeResult.isCounterUp;
 
-            if (judgeResult.incorrectState) {
+            // incorrectSpeakState로 무릎을 여러번
+            if (judgeResult.incorrectState && incorrectSpeakState.current == false) {
               setIncorrectState(judgeResult.incorrectState);
+              speak("무릎"); // 무릎 주의 메세지 출력
+              incorrectSpeakState.current = true;
+
               setTimeout(() => {
                 setIncorrectState("");
-              }, 2000);
+                incorrectSpeakState.current = false;
+              }, 1000);
             }
           }
 
@@ -513,13 +519,11 @@ export function MovenetV2() {
               display: isCountdownFinished ? "block" : "none",
             }}
           >
-            {(remainingRepCount <= 3 || incorrectState.length > 0) && (
+            {(incorrectState.length > 0) && (
               <div className="z-[1000] relative">
                 <div
                   className={
-                    remainingRepCount <= 3
-                      ? "absolute border-4 border-[#6a66fa] text-[#6a66fa] bg-white text-center rounded-xl text-3xl font-bold px-6 py-2 w-[25%] left-0"
-                      : "absolute border-4 border-[#fa6666] text-[#fa6666] bg-white text-center rounded-xl text-3xl font-bold px-6 py-2 w-[25%] left-0"
+                    "absolute border-4 border-[#fa6666] text-[#fa6666] bg-white text-center rounded-xl text-3xl font-bold px-6 py-2 w-[25%] left-0"
                   }
                   style={{
                     top: `${73 * MODIFIER}dvh`,
@@ -536,10 +540,8 @@ export function MovenetV2() {
                   }}
                 >
                   {incorrectState === "SQUAT_KNEE"
-                    ? "무릎 주의 !"
-                    : remainingRepCount <= 3
-                    ? `${remainingRepCount}개 남았어요!`
-                    : ""}
+                    ? "무릎 주의 !" : ""
+                  }
                 </div>
               </div>
             )}
