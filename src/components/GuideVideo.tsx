@@ -27,11 +27,11 @@ export function GuideVideo({
         className="border-[3px] border-[#0acf83]"
         src={
           workoutType === "bench_press"
-            ? "https://www.youtube.com/embed/1wbsM7vYB3U?autoplay=1&loop=1&mute=1&playlist=1wbsM7vYB3U"
+            ? "/videos/bench.mp4"
             : workoutType === "squat"
-              ? "https://www.youtube.com/embed/mKMlhY2FIwc?autoplay=1&loop=1&mute=1&playlist=mKMlhY2FIwc"
+              ? "/videos/squat.mp4"
               : workoutType === "deadlift"
-                ? "https://www.youtube.com/embed/eCu0ELMje3Y?autoplay=1&loop=1&mute=1&playlist=eCu0ELMje3Y"
+                ? "/videos/deadlift.mp4"
                 : ""
         }
         allow="autoplay;"
