@@ -23,7 +23,7 @@ export function GuideVideo({
       >
         Guide
       </div>
-      <iframe
+      <video
         className="border-[3px] border-[#0acf83]"
         src={
           workoutType === "bench_press"
@@ -34,12 +34,14 @@ export function GuideVideo({
                 ? "/videos/deadlift.mp4"
                 : ""
         }
-        allow="autoplay;"
+        autoPlay={true}
+        muted
+        loop
         width={isReplay ? VIDEO_HEIGHT / MODIFIER : VIDEO_HEIGHT}
         height={isReplay ? VIDEO_WIDTH / MODIFIER : VIDEO_WIDTH}
       // width={VIDEO_WIDTH}
       // width={512}
-      ></iframe >
+      ></video >
     </div>
   );
 }
