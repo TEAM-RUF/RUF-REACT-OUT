@@ -231,6 +231,7 @@ export function MovenetV2() {
         currentWorkoutSetRef.current +
         ".mp4";
 
+
       // videoName을 전역 State에 저장
       setFileNameArray((prev) => {
         const newArr = [...prev, videoName];
@@ -557,10 +558,10 @@ export function MovenetV2() {
                       workoutType === "bench_press" && isGuideVideo
                         ? `${25 * MODIFIER}dvw`
                         : workoutType === "bench_press" && !isGuideVideo
-                        ? "50dvw"
-                        : isGuideVideo
-                        ? "35dvw"
-                        : "50dvw",
+                          ? "50dvw"
+                          : isGuideVideo
+                            ? "35dvw"
+                            : "50dvw",
                     transform: "translateX(-50%)",
                     opacity: "0.7",
                   }}
