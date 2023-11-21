@@ -37,7 +37,7 @@ export const Counter: React.FC<CounterProps> = ({
       >
         -
       </button>
-      <span className="font-bold text-[#cff947]">{currentValue}</span>
+      <span className="font-[600] text-[#cff947]">{`${currentValue} ${counterType === "REST" ? "초" : counterType === "SETS" ? "세트" : ""}`}</span>
       <button
         className="text-[#878787]"
         onClick={() =>

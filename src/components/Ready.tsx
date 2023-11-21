@@ -22,6 +22,7 @@ import {
 import { atom, useAtom } from "jotai";
 // SpeachSynthesisApi import
 import { useSpeachSynthesisApi } from "./hooks/useSpeakSynthesisApi";
+import { IconBeta } from "@/lib/icons/beta";
 
 const INIT_STATE = {
   workout_type: "bench_press",
@@ -29,7 +30,6 @@ const INIT_STATE = {
   numberOfRep: [10, 10, 10],
   restInterval: 40,
   isGuideVideo: false,
-
 };
 
 export type ActionType = {
@@ -41,7 +41,7 @@ export type ActionType = {
 export type ActionAndStateType = ActionType & Partial<typeof INIT_STATE>;
 
 export function Ready() {
-  // Initialize useSpeachSynthesisApi 
+  // Initialize useSpeachSynthesisApi
   const {
     isSpeaking,
     isPaused,
@@ -135,7 +135,7 @@ export function Ready() {
             src={PreviousArrow}
             alt="이전으로 돌아가기"
             style={{
-              visibility: currentPhase === 2 ? "visible" : "hidden"
+              visibility: currentPhase === 2 ? "visible" : "hidden",
             }}
           />
         </div>
@@ -148,7 +148,7 @@ export function Ready() {
               updateOptions({ type: "WORKOUT_TYPE", workout_type: e })
             }
           >
-            <SelectTrigger className="w-[23%]">
+            <SelectTrigger className="w-[35%]">
               <SelectValue
                 placeholder="Bench Press"
                 defaultValue={options.workout_type}
@@ -161,13 +161,23 @@ export function Ready() {
               <SelectItem value="let_pull_down">Let Pull Down</SelectItem>
             </SelectContent>
           </Select>
-          <div className="w-[23%]">
-            <button
-              className="w-full text-xl font-bold py-4 rounded-lg bg-[#cff947] text-black cursor-pointer"
-              onClick={() => setCurrentPhase(2)}
-            >
-              다음
-            </button>
+          <div className="flex flex-col w-full items-center gap-4">
+            <div className="w-[35%]">
+              <button
+                className="w-full text-xl font-bold py-4 rounded-lg bg-[#cff947] text-black cursor-pointer"
+                onClick={() => setCurrentPhase(2)}
+              >
+                다음
+              </button>
+            </div>
+            <div className="w-[35%]">
+              <button
+                className="w-full text-xl font-bold py-4 rounded-lg bg-[#383838] text-[#d9d9d9] cursor-pointer"
+                onClick={() => alert("준비중입니다")}
+              >
+                운동 방법 보기
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -187,14 +197,18 @@ export function Ready() {
           </div>
           <div className="flex flex-1 gap-6">
             <div className="flex flex-col w-full items-start gap-6 ">
-              <div className="flex items-center h-full pl-[82%]">
+              <div className="flex items-center h-full pl-[77%]">
                 <div className="text-2xl font-bold text-[#d9d9d9]">세트 수</div>
               </div>
-              <div className="flex items-center h-full pl-[80%]">
-                <div className="text-2xl font-bold text-[#d9d9d9]">반복 횟수</div>
+              <div className="flex items-center h-full pl-[74%]">
+                <div className="text-2xl font-bold text-[#d9d9d9]">
+                  반복 횟수
+                </div>
               </div>
-              <div className="flex items-center h-full pl-[80%]">
-                <div className="text-2xl font-bold text-[#d9d9d9]">쉬는 시간</div>
+              <div className="flex items-center h-full pl-[74%]">
+                <div className="text-2xl font-bold text-[#d9d9d9]">
+                  쉬는 시간
+                </div>
               </div>
             </div>
             <div className="flex flex-col w-full gap-6">
@@ -230,13 +244,21 @@ export function Ready() {
           </div>
           <div className="flex w-full ">
             <div className="w-full"></div>
-            <div className="w-full flex flex-col gap-6">
+
+            <div className="relative w-full flex flex-col gap-6">
+              <IconBeta />
+
               <button
                 className="w-full text-xl font-bold py-4 rounded-lg bg-[#cff947] text-black cursor-pointer"
                 onClick={() => gotoNextPage({ isGuideVideo: false })}
               >
                 AI와 운동하기
               </button>
+
+              {/* <svg width="86" height="38" viewBox="0 0 86 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M20.4611 0C10.7961 0 2.96106 7.83502 2.96106 17.5C2.96106 20.1499 3.55004 22.6623 4.60423 24.9133L0 37.3123L15.6102 34.319C17.1505 34.7624 18.778 35 20.4611 35H68.4611C78.126 35 85.9611 27.165 85.9611 17.5C85.9611 7.83502 78.126 0 68.4611 0H20.4611Z" fill="#878787"/>
+</svg> */}
+
               <button
                 className="w-full text-xl font-bold py-4 rounded-lg bg-[#393939] text-[#d9d9d9] cursor-pointer"
                 onClick={() => gotoNextPage({ isGuideVideo: true })}
