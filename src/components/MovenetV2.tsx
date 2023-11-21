@@ -197,6 +197,8 @@ export function MovenetV2() {
   // jotai atom으로 fileName State 관리
   const [fileNameArray, setFileNameArray] = useAtom(fileNameArrayAtom);
 
+  const actToken = useRef<String>("N/A");
+  const currentSetCnt = useRef<number>(0);
   const startRecord = () => {
     if (!video1Ref.current) return;
     if (video1Ref.current.srcObject == null) return;
@@ -222,13 +224,18 @@ export function MovenetV2() {
       });
       videoStreamChunksRef.current = [];
 
+      // actToken 최초 1회 초기화
+      if (actToken.current == "N/A")
+        actToken.current = generateRandomString(12);
+
       // setRecordedVideoBlobArr에 저장한 이후에 서버로 전송하는 작업 수행
+      currentSetCnt.current += 1;
       const videoName =
         generateRandomString(10) +
         "_" +
         workoutType +
         "_" +
-        currentWorkoutSetRef.current +
+        currentSetCnt.current +
         ".mp4";
 
 
@@ -244,8 +251,9 @@ export function MovenetV2() {
       const formData = new FormData();
       formData.append("file", newVideoFile);
       formData.append("workout", workoutType);
-      formData.append("set", currentWorkoutSetRef.current.toString());
+      formData.append("set", currentSetCnt.current.toString());
       formData.append("userToken", "TEST_TOKEN");
+      formData.append("actToken", actToken.current.toString());
       const transport = axios.create({ withCredentials: true });
 
       transport
