@@ -24,9 +24,9 @@ export const Counter: React.FC<CounterProps> = ({
   repIndex,
 }) => {
   return (
-    <div className="w-full flex justify-between text-white border-[#5c59ff] border-2 bg-white px-4 py-4 rounded-xl">
+    <div className="w-full flex justify-between bg-[#393939] text-white   px-4 py-4 rounded-xl">
       <button
-        className="text-[#5c59ff]"
+        className="text-[#878787]"
         onClick={() =>
           updateOptions({
             type: counterType,
@@ -37,9 +37,9 @@ export const Counter: React.FC<CounterProps> = ({
       >
         -
       </button>
-      <span className="font-bold text-[#5c59ff]">{currentValue}</span>
+      <span className="font-bold text-[#cff947]">{currentValue}</span>
       <button
-        className="text-[#5c59ff]"
+        className="text-[#878787]"
         onClick={() =>
           updateOptions({
             type: counterType,

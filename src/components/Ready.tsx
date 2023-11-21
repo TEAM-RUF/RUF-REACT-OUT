@@ -158,11 +158,12 @@ export function Ready() {
               <SelectItem value="bench_press">Bench Press</SelectItem>
               <SelectItem value="deadlift">Deadlift</SelectItem>
               <SelectItem value="squat">Squat</SelectItem>
+              <SelectItem value="let_pull_down">Let Pull Down</SelectItem>
             </SelectContent>
           </Select>
           <div className="w-[23%]">
             <button
-              className="w-full text-xl font-bold py-4 rounded-lg bg-[#08aa6c] text-white cursor-pointer"
+              className="w-full text-xl font-bold py-4 rounded-lg bg-[#cff947] text-black cursor-pointer"
               onClick={() => setCurrentPhase(2)}
             >
               다음
@@ -186,14 +187,14 @@ export function Ready() {
           </div>
           <div className="flex flex-1 gap-6">
             <div className="flex flex-col w-full items-start gap-6 ">
-              <div className="flex items-center h-full pl-[85%]">
-                <div className="text-2xl font-bold text-[#d9d9d9]">Set(s)</div>
+              <div className="flex items-center h-full pl-[82%]">
+                <div className="text-2xl font-bold text-[#d9d9d9]">세트 수</div>
               </div>
-              <div className="flex items-center h-full pl-[85%]">
-                <div className="text-2xl font-bold text-[#d9d9d9]">Rep(s)</div>
+              <div className="flex items-center h-full pl-[80%]">
+                <div className="text-2xl font-bold text-[#d9d9d9]">반복 횟수</div>
               </div>
-              <div className="flex items-center h-full pl-[85%]">
-                <div className="text-2xl font-bold text-[#d9d9d9]">Rest</div>
+              <div className="flex items-center h-full pl-[80%]">
+                <div className="text-2xl font-bold text-[#d9d9d9]">쉬는 시간</div>
               </div>
             </div>
             <div className="flex flex-col w-full gap-6">
@@ -231,16 +232,16 @@ export function Ready() {
             <div className="w-full"></div>
             <div className="w-full flex flex-col gap-6">
               <button
-                className="w-full text-xl font-bold py-4 rounded-lg bg-[#7b3eff] text-white cursor-pointer"
+                className="w-full text-xl font-bold py-4 rounded-lg bg-[#cff947] text-black cursor-pointer"
                 onClick={() => gotoNextPage({ isGuideVideo: false })}
               >
-                혼자 운동하기
+                AI와 운동하기
               </button>
               <button
-                className="w-full text-xl font-bold py-4 rounded-lg bg-[#08aa6c] text-white cursor-pointer"
+                className="w-full text-xl font-bold py-4 rounded-lg bg-[#393939] text-[#d9d9d9] cursor-pointer"
                 onClick={() => gotoNextPage({ isGuideVideo: true })}
               >
-                가이드와 운동하기
+                자율 운동하기
               </button>
             </div>
             <div className="w-full"></div>

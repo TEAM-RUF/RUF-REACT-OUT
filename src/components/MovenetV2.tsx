@@ -1,5 +1,6 @@
 "use client";
 
+import { VIDEO_HEIGHT, VIDEO_WIDTH } from "@/lib/movenet/params";
 import axios from "axios";
 import { Countdown } from "@/components/Countdown";
 import { settingMovenetV2 } from "@/lib/movenet/movenetMainV2";
@@ -74,10 +75,12 @@ export function MovenetV2() {
     numberOfRepOfThisSetRef.current - repCountRef.current;
 
   const {
-    videoRef,
+    video1Ref,
+    video2Ref,
     guideVideoRef,
     detectorRef,
-    cameraRef,
+    camera1Ref,
+    camera2Ref,
     statsRef,
     startInferenceTimeRef,
     numInferencesRef,
@@ -121,8 +124,13 @@ export function MovenetV2() {
       ).filter((device) => device.kind === "videoinput");
 
       setMediaDeviceArr(videoDevices);
+
+      const secondDevice = videoDevices.at(1);
+      if (secondDevice) {
+        changeCamera({ deviceId: secondDevice.deviceId, videoRef: video2Ref });
+      }
     })();
-  });
+  }, []);
 
   useLayoutEffect(() => {
     if (isSetChanged) {
@@ -190,11 +198,11 @@ export function MovenetV2() {
   const [fileNameArray, setFileNameArray] = useAtom(fileNameArrayAtom);
 
   const startRecord = () => {
-    if (!videoRef.current) return;
-    if (videoRef.current.srcObject == null) return;
+    if (!video1Ref.current) return;
+    if (video1Ref.current.srcObject == null) return;
 
     const mediaStreamInstance = new MediaRecorder(
-      videoRef.current.srcObject as MediaStream
+      video1Ref.current.srcObject as MediaStream
     );
 
     mediaStreamInstance.ondataavailable = (event) => {
@@ -299,10 +307,10 @@ export function MovenetV2() {
         customFpsPanel,
       } = await settingMovenetV2({
         workoutType,
-        videoRef,
+        videoRef: video1Ref,
         outputCanvasRef: outputCanvasRef,
       });
-      cameraRef.current = camera;
+      camera1Ref.current = camera;
       detectorRef.current = detector;
       statsRef.current = stats;
       startInferenceTimeRef.current = startInferenceTime!;
@@ -328,9 +336,9 @@ export function MovenetV2() {
     }
 
     async function renderResult() {
-      if (videoRef.current && videoRef.current.readyState < 2) {
+      if (video1Ref.current && video1Ref.current.readyState < 2) {
         await new Promise((resolve) => {
-          videoRef.current!.onloadeddata = () => {
+          video1Ref.current!.onloadeddata = () => {
             resolve(null);
           };
         });
@@ -339,11 +347,11 @@ export function MovenetV2() {
       let poses: null | Pose[] = null;
 
       if (workoutType === "bench_press") {
-        canvasForRotateRef.current!.width = videoRef.current!.videoWidth;
-        canvasForRotateRef.current!.height = videoRef.current!.videoHeight;
+        canvasForRotateRef.current!.width = video1Ref.current!.videoWidth;
+        canvasForRotateRef.current!.height = video1Ref.current!.videoHeight;
       } else {
-        canvasForRotateRef.current!.width = videoRef.current!.videoHeight;
-        canvasForRotateRef.current!.height = videoRef.current!.videoWidth;
+        canvasForRotateRef.current!.width = video1Ref.current!.videoHeight;
+        canvasForRotateRef.current!.height = video1Ref.current!.videoWidth;
       }
 
       const ctx = canvasForRotateRef.current!.getContext("2d")!;
@@ -353,17 +361,17 @@ export function MovenetV2() {
 
         if (workoutType === "bench_press") {
           ctx.translate(
-            videoRef.current!.videoWidth,
-            videoRef.current!.videoHeight
+            video1Ref.current!.videoWidth,
+            video1Ref.current!.videoHeight
           );
           ctx.rotate(Math.PI);
         } else {
           // 90도 회전
-          ctx.translate(videoRef.current!.videoHeight, 0);
+          ctx.translate(video1Ref.current!.videoHeight, 0);
           ctx.rotate(Math.PI / 2);
         }
 
-        ctx.drawImage(videoRef.current!, 0, 0);
+        ctx.drawImage(video1Ref.current!, 0, 0);
 
         poses = await detectorRef.current.estimatePoses(
           canvasForRotateRef.current!,
@@ -399,7 +407,10 @@ export function MovenetV2() {
             isCounterUp = judgeResult.isCounterUp;
 
             // incorrectSpeakState로 무릎을 여러번
-            if (judgeResult.incorrectState && incorrectSpeakState.current == false) {
+            if (
+              judgeResult.incorrectState &&
+              incorrectSpeakState.current == false
+            ) {
               setIncorrectState(judgeResult.incorrectState);
               speak("무릎"); // 무릎 주의 메세지 출력
               incorrectSpeakState.current = true;
@@ -479,12 +490,27 @@ export function MovenetV2() {
     return () => cancelAnimationFrame(rafIdRef.current!);
   }, []);
 
-  const changeCamera = async (deviceId: string) => {
-    if (cameraRef.current) {
-      cameraRef.current.changeCamera(deviceId);
+  const changeCamera1st = async (deviceId: string) => {
+    console.log(deviceId);
+
+    if (camera1Ref.current) {
+      camera1Ref.current.changeCamera(deviceId);
     } else {
       console.log("CANNOT CHANGE CAMERA");
     }
+  };
+
+  const changeCamera2nd = async (deviceId: string) => {
+    console.log(deviceId);
+
+    changeCamera({ deviceId, videoRef: video2Ref });
+
+    // if (camera2Ref.current) {
+    //   changeCamera({deviceId ,videoRef : video2Ref})
+    //   // camera2Ref.current.changeCamera(deviceId);
+    // } else {
+    //   console.log("CANNOT CHANGE CAMERA");
+    // }
   };
 
   const dropoutWorkout = () => {
@@ -519,7 +545,7 @@ export function MovenetV2() {
               display: isCountdownFinished ? "block" : "none",
             }}
           >
-            {(incorrectState.length > 0) && (
+            {incorrectState.length > 0 && (
               <div className="z-[1000] relative">
                 <div
                   className={
@@ -539,9 +565,7 @@ export function MovenetV2() {
                     opacity: "0.7",
                   }}
                 >
-                  {incorrectState === "SQUAT_KNEE"
-                    ? "무릎 주의 !" : ""
-                  }
+                  {incorrectState === "SQUAT_KNEE" ? "무릎 주의 !" : ""}
                 </div>
               </div>
             )}
@@ -551,19 +575,104 @@ export function MovenetV2() {
             ></canvas>
             <div id="stats" style={{ display: "none" }}></div>
             <div id="scatter-gl-container"></div>
+
             <div
-              className="w-full h-[100%] flex justify-center items-center px-0"
+              className="relative  w-full h-[100%]  px-0"
               style={{ flex: "1 1 100%" }}
             >
               <div
-                className="w-full h-full flex justify-end items-center"
+                className="fixed left-0 top-[20%]   flex justify-end items-center"
                 style={{
                   justifyContent: isGuideVideo ? "end" : "center",
                   justifyItems: isGuideVideo ? "" : "center",
                 }}
               >
                 <div className="canvas-wrapper" style={{}}>
-                  <div
+                  {/* <div
+                    className="relative w-[100%] z-[10]"
+                    style={{
+                      transform:
+                        workoutType === "bench_press"
+                          ? `translateY(-${
+                              200 * MULTIPLIER_BASED_ON_DEVICE_WIDTH
+                            }px)`
+                          : "",
+                    }}
+                  >
+                    <div
+                      className="absolute bg-black text-[#cff947] border-2 border-[#cff947] px-5 py-3 mt-6 rounded-3xl text-xl font-bold"
+                      style={{
+                        left: workoutType === "bench_press" ? "27%" : "5%",
+                      }}
+                    >
+                      {`${currentWorkoutSetRef.current} / ${numberOfSet} 세트`}
+                    </div>
+                    <div
+                      className="absolute bg-[#cff947] text-black px-5 py-3 mt-6 rounded-3xl text-xl font-bold"
+                      style={{
+                        right: workoutType === "bench_press" ? "27%" : "5%",
+                      }}
+                    >
+                      {`${repCount} / ${numberOfRep.at(
+                        currentWorkoutSetRef.current - 1
+                      )} 회`}
+                    </div>
+                  </div> */}
+                  <canvas
+                    ref={outputCanvasRef}
+                    id="output"
+                    className="border-[3px] border-[#cff947]"
+                    style={{
+                      transform:
+                        workoutType === "bench_press" ? "rotate(90deg)" : "",
+                    }}
+                  ></canvas>
+                  <video
+                    id="video"
+                    ref={video1Ref}
+                    playsInline
+                    style={{
+                      display: "none",
+                    }}
+                  ></video>
+                </div>
+              </div>
+
+              <div
+                className="absolute left-[50%] -translate-x-[50%] w-[fit-content]  z-[10] flex flex-col"
+                style={{
+                  transform: "",
+                }}
+              >
+                <div
+                  className="text-center bg-black text-[#cff947] border-2 border-[#cff947] px-5 py-3 mt-6 rounded-3xl text-xl font-bold"
+                  style={{
+                    left: workoutType === "bench_press" ? "27%" : "5%",
+                  }}
+                >
+                  {`${currentWorkoutSetRef.current} / ${numberOfSet} 세트`}
+                </div>
+                <div
+                  className="text-center bg-[#cff947] text-black px-5 py-3 mt-6 rounded-3xl text-xl font-bold"
+                  style={{
+                    right: workoutType === "bench_press" ? "27%" : "5%",
+                  }}
+                >
+                  {`${repCount} / ${numberOfRep.at(
+                    currentWorkoutSetRef.current - 1
+                  )} 회`}
+                </div>
+              </div>
+
+              <div
+                className="fixed  right-0 top-[20%]  flex justify-end items-center "
+                style={{
+                  justifyContent: isGuideVideo ? "end" : "center",
+                  justifyItems: isGuideVideo ? "" : "center",
+                }}
+              >
+                <div className="canvas-wrapper" style={{}}>
+                  {/* <div
                     className="relative w-[100%] z-[10]"
                     style={{
                       transform:
@@ -592,8 +701,8 @@ export function MovenetV2() {
                         currentWorkoutSetRef.current - 1
                       )} 회`}
                     </div>
-                  </div>
-                  <canvas
+                  </div> */}
+                  {/* <canvas
                     ref={outputCanvasRef}
                     id="output"
                     className="border-[3px] border-[#0acf83]"
@@ -601,25 +710,27 @@ export function MovenetV2() {
                       transform:
                         workoutType === "bench_press" ? "rotate(90deg)" : "",
                     }}
-                  ></canvas>
+                  ></canvas> */}
                   <video
-                    id="video"
-                    ref={videoRef}
+                    id="video2"
+                    ref={video2Ref}
+                    className="border-[3px] border-[#cff947]"
                     playsInline
                     style={{
-                      display: "none",
+                      transform: "rotate(90deg)",
+                      // display: "none",
                     }}
                   ></video>
                 </div>
               </div>
-              {isGuideVideo && (
+              {/* {isGuideVideo && (
                 <div className="w-full">
                   <GuideVideo
                     guideVideoRef={guideVideoRef}
                     workoutType={workoutType}
                   />
                 </div>
-              )}
+              )} */}
             </div>
           </div>
           <div
@@ -630,7 +741,7 @@ export function MovenetV2() {
             }}
           >
             <div className="w-full" style={{}}>
-              <Select onValueChange={changeCamera}>
+              <Select onValueChange={changeCamera1st}>
                 <SelectTrigger className="">
                   <SelectValue
                     placeholder={
@@ -657,10 +768,38 @@ export function MovenetV2() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="w-full" style={{}}>
+              <Select onValueChange={changeCamera2nd}>
+                <SelectTrigger className="">
+                  <SelectValue
+                    placeholder={
+                      mediaDeviceArr.length === 0
+                        ? ""
+                        : mediaDeviceArr.at(1)!.label
+                    }
+                    defaultValue={""}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {mediaDeviceArr.length === 0 ? (
+                    <SelectItem value={"LOADING..."}>{"LOADING..."}</SelectItem>
+                  ) : (
+                    mediaDeviceArr.map((device, i) => {
+                      if (device.deviceId === "") return null;
+                      return (
+                        <SelectItem key={i} value={device.deviceId}>
+                          {device.label}
+                        </SelectItem>
+                      );
+                    })
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="w-full"></div>
             <div className="w-full justify-end flex flex-1 gap-5 py-2">
               <button
-                className="px-4 w-full text-xl font-bold py-2 rounded-lg bg-[#5c59ff] text-white cursor-pointer"
+                className="px-4 w-full text-xl font-bold py-2 rounded-lg bg-[#383838] text-[#d9d9d9] cursor-pointer"
                 onClick={() => goToNextSet()}
                 style={{
                   width: "max-content",
@@ -669,7 +808,7 @@ export function MovenetV2() {
                 다음 세트로 넘어가기
               </button>
               <button
-                className="px-4 w-full text-xl font-bold py-2 rounded-lg bg-[#ff5959] text-white cursor-pointer"
+                className="px-4 w-full text-xl font-bold py-2 rounded-lg bg-[#cff947] text-black cursor-pointer"
                 onClick={() => dropoutWorkout()}
                 style={{
                   width: "max-content",
@@ -686,10 +825,12 @@ export function MovenetV2() {
 }
 
 function useRefsForMovenet() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const video1Ref = useRef<HTMLVideoElement>(null!);
+  const video2Ref = useRef<HTMLVideoElement>(null!);
   const guideVideoRef = useRef<HTMLVideoElement>(null);
   const detectorRef = useRef<PoseDetector | null>(null);
-  const cameraRef = useRef<Camera | null>(null);
+  const camera1Ref = useRef<Camera | null>(null);
+  const camera2Ref = useRef<Camera | null>(null);
   const statsRef = useRef<Stats | null>(null);
   const startInferenceTimeRef = useRef<number | null>(0);
   const numInferencesRef = useRef<number | null>(0);
@@ -705,10 +846,12 @@ function useRefsForMovenet() {
   const canvasForRotateRef = useRef<HTMLCanvasElement | null>(null);
 
   return {
-    videoRef,
+    video1Ref,
+    video2Ref,
     guideVideoRef,
     detectorRef,
-    cameraRef,
+    camera1Ref,
+    camera2Ref,
     statsRef,
     startInferenceTimeRef,
     numInferencesRef,
@@ -742,4 +885,34 @@ function useParamsForWorkout() {
     restInterval,
     isGuideVideo,
   };
+}
+
+async function changeCamera({
+  deviceId,
+  videoRef,
+}: {
+  deviceId: string;
+  videoRef: React.MutableRefObject<HTMLVideoElement>;
+}) {
+  const videoConfig = {
+    audio: false,
+    video: {
+      width: { ideal: VIDEO_WIDTH },
+      height: { ideal: VIDEO_HEIGHT },
+      deviceId,
+    },
+  };
+
+  const stream = await navigator.mediaDevices.getUserMedia(videoConfig);
+  // videoRef.curren
+
+  videoRef.current.srcObject = stream;
+  // this.video.srcObject = stream;
+
+  await new Promise((resolve) => {
+    videoRef.current.onloadedmetadata = () => {
+      resolve("");
+    };
+  });
+  videoRef.current.play();
 }

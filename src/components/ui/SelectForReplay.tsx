@@ -37,7 +37,7 @@ const SelectTrigger = React.forwardRef<
         >
           <path
             d="M8 12L2.27855e-05 -2.46181e-05L16 -1.02748e-05L8 12Z"
-            fill="#FFFFFF"
+            fill="#000000"
           />
         </svg>
 

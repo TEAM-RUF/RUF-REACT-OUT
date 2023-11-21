@@ -62,7 +62,7 @@ export function Countdown({
             isPlaying
             duration={countdownDuration}
             size={280}
-            colors={["#5c59ff", "#5c59ff", "#FF0000", "#FF0000"]}
+            colors={["#cff947", "#cff947", "#FF0000", "#FF0000"]}
             colorsTime={[10, 4, 3, 0]}
             onComplete={() => {
               setIsCountdownFinished(true);
@@ -78,7 +78,7 @@ export function Countdown({
         <div className={"w-1/2 h-full relative"}>
           <video
             ref={videoRef}
-            className="border-[3px] border-[#0acf83] absolute top-1/4 left-0 right-0 mx-auto"
+            className="border-[3px] border-[#cff947] absolute top-1/4 left-0 right-0 mx-auto"
             src={recordedVideoURL}
             controls={false}
             loop // Enable video looping

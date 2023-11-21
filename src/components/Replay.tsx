@@ -293,7 +293,7 @@ export function ReplayImpl() {
                 fontSize: "1.3vw",
               }}
             >
-              SET
+              Set
             </div>
             <div
               className="w-full z-[10000]"
@@ -302,7 +302,7 @@ export function ReplayImpl() {
               }}
             >
               <Select onValueChange={changeVideo}>
-                <SelectTrigger className=" bg-[#0acf83] text-white font-bold">
+                <SelectTrigger className=" bg-[#cff947] text-black font-bold">
                   <SelectValue placeholder="1" defaultValue={"1"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -353,7 +353,7 @@ export function ReplayImpl() {
                     transform: `scaleX(-1) rotate(90deg) ${"translateX(-12px)"
                       }`,
                   }}
-                  className="border-[3px] border-[#0acf83]"
+                  className="border-[3px] border-[#cff947]"
                   src={recordedVideoURL}
                   controls={false}
                   width={VIDEO_WIDTH / MODIFIER}
@@ -386,14 +386,14 @@ export function ReplayImpl() {
           )}
         </div>
         <div className="w-full flex flex-col justify-center gap-6">
-          <div className="">
+          <div className="">            
             <Slider
               defaultValue={[0]}
               value={[seekValue]}
               max={100}
               step={0.01}
               onValueChange={seekVideo}
-            />
+            />            
           </div>
           <div className="flex gap-6 justify-center">
             {[0.5, 1, 1.5].map((speed) => {
@@ -401,7 +401,7 @@ export function ReplayImpl() {
                 <button
                   key={speed}
                   data-speed={speed}
-                  className={`bg-white text-black px-6 font-bold rounded-xl hover:bg-violet-400 ${MULTIPLIER_BASED_ON_DEVICE_WIDTH === 1 ? "py-2" : ""
+                  className={`bg-[#cff947] text-black px-6 font-bold rounded-xl hover:bg-violet-400 ${MULTIPLIER_BASED_ON_DEVICE_WIDTH === 1 ? "py-2" : ""
                     }`}
                   style={{
                     fontSize: "1.2vw",
@@ -417,7 +417,7 @@ export function ReplayImpl() {
         <div className="w-full flex gap-6 items-center justify-end pr-10">
           <div className="">
             <button
-              className="bg-[#FF0000] py-4 px-6 font-bold rounded-xl hover:bg-violet-400"
+              className="bg-[#5c59ff] py-4 px-6 font-bold rounded-xl hover:bg-violet-400"
               style={{
                 fontSize: "1.2vw",
               }}

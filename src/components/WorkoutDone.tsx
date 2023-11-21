@@ -25,12 +25,12 @@ export function WorkoutDoneImpl() {
         </div>
         <div className="flex flex-col gap-2">
           <Link href={`/replay?${searchParams.toString()}`}>
-            <button className="w-full text-xl font-bold py-4 rounded-lg bg-[#5c59ff] text-white cursor-pointer">
+            <button className="w-full text-xl font-bold py-4 rounded-lg bg-[#cff947] text-black cursor-pointer">
               운동 영상 다시보기
             </button>
           </Link>
           <Link href={`/`}>
-            <button className="w-full text-xl font-bold py-4 rounded-lg bg-[#ff5959] text-white cursor-pointer">
+            <button className="w-full text-xl font-bold py-4 rounded-lg bg-[#383838] text-[#d9d9d9] cursor-pointer">
               운동 종료
             </button>
           </Link>
