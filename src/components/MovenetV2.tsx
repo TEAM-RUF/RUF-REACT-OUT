@@ -125,7 +125,7 @@ export function MovenetV2() {
 
       setMediaDeviceArr(videoDevices);
 
-      const secondDevice = videoDevices.at(1);
+      const secondDevice = videoDevices.at(-1);
       if (secondDevice) {
         changeCamera({ deviceId: secondDevice.deviceId, videoRef: video2Ref });
       }
@@ -784,7 +784,7 @@ export function MovenetV2() {
                     placeholder={
                       mediaDeviceArr.length === 0
                         ? ""
-                        : mediaDeviceArr.at(1)!.label
+                        : mediaDeviceArr.at(-1)!.label
                     }
                     defaultValue={""}
                   />
