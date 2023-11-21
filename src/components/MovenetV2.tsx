@@ -225,8 +225,15 @@ export function MovenetV2() {
       videoStreamChunksRef.current = [];
 
       // actToken 최초 1회 초기화
-      if (actToken.current == "N/A")
+      if (actToken.current == "N/A") {
         actToken.current = generateRandomString(12);
+
+        //FileNameArray에 actToken값 저장
+        setFileNameArray((prev) => {
+          const newArr = [...prev, actToken.current.toString()];
+          return newArr;
+        });
+      }
 
       // setRecordedVideoBlobArr에 저장한 이후에 서버로 전송하는 작업 수행
       currentSetCnt.current += 1;

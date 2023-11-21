@@ -65,7 +65,6 @@ export function ReplayImpl() {
   );
 
   useEffect(function initializeEventListener() {
-    generateQRCode(fileNameArray[0]);
     const video = videoRef.current;
     const seekBarContainer = seekBarContainerRef.current;
     const seekBar = seekBarRef.current;
@@ -178,12 +177,6 @@ export function ReplayImpl() {
     }
 
     const workoutSetIndex = parseInt(value) - 1;
-
-    // Video를 Chane할 때 해당 index로 filenameArray에서 filename 불러옴
-    console.log(fileNameArray[workoutSetIndex]);
-    generateQRCode(fileNameArray[workoutSetIndex]);
-    //
-
     setcurrentSetIdx(workoutSetIndex);
 
     const blob = recordedVideoBlobArr.at(workoutSetIndex);
@@ -228,56 +221,9 @@ export function ReplayImpl() {
     }
   };
 
-  const qrCodeRef = useRef<HTMLCanvasElement>(null);
-
-  const generateQRCode = (filename: string) => {
-    const url = process.env.NEXT_PUBLIC_BACKEND_HOST + '/video?filename=' + filename;
-
-    if (qrCodeRef.current) {
-      try {
-        const qr = QRCode(0, 'L'); // QR 코드 생성
-        qr.addData(url);
-        qr.make();
-
-        // QR 코드 크기 설정
-        const size = 200; // 원하는 크기로 조정 (예: 200px)
-
-        // Canvas에 QR 코드 그리기
-        const canvas = qrCodeRef.current;
-        canvas.width = size; // Canvas의 폭 설정
-        canvas.height = size; // Canvas의 높이 설정
-        const context = canvas.getContext('2d');
-        if (context) {
-          const moduleCount = qr.getModuleCount();
-          const cellSize = size / moduleCount;
-
-          for (let row = 0; row < moduleCount; row++) {
-            for (let col = 0; col < moduleCount; col++) {
-              context.fillStyle = qr.isDark(row, col) ? 'black' : 'white';
-              context.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error generating QR code:', error);
-      }
-    }
-  };
-
-
   return (
     <>
       <div className="z-[10000] bg-transparent fixed w-full bg-black flex flex-1 items-center">
-        <canvas
-          ref={qrCodeRef}
-          id="qr-code"
-          style={{
-            position: "absolute",
-            top: "50px",
-            left: "10px",
-          }}
-        />
-
         <div className="w-full">
           <Image src={Logo} alt="로고" width={100} />
           <br />
@@ -386,14 +332,14 @@ export function ReplayImpl() {
           )}
         </div>
         <div className="w-full flex flex-col justify-center gap-6">
-          <div className="">            
+          <div className="">
             <Slider
               defaultValue={[0]}
               value={[seekValue]}
               max={100}
               step={0.01}
               onValueChange={seekVideo}
-            />            
+            />
           </div>
           <div className="flex gap-6 justify-center">
             {[0.5, 1, 1.5].map((speed) => {
