@@ -44,6 +44,7 @@ import {
 import { useSpeachSynthesisApi } from "./hooks/useSpeakSynthesisApi";
 
 export function MovenetV2() {
+  const isMediaStreamDoneRef = useRef({ left: false, right: false });
   const [incorrectState, setIncorrectState] = useState<"SQUAT_KNEE" | "">("");
   const [mediaDeviceArr, setMediaDeviceArr] = useState<MediaDeviceInfo[]>([]);
   const router = useRouter();
@@ -59,7 +60,11 @@ export function MovenetV2() {
   const startTimeRef = useRef<number>(0);
   const [isCountdownFinished, setIsCountdownFinished] = useState(false);
   const isCountdownFinishedRef = useRef<boolean>(false);
-  let curVideoBlobArr = useRef<Blob>(new Blob());
+  // let curVideoBlobArr = useRef<Blob>(new Blob());
+  let curVideoBlobArr = useRef<{ left: Blob; right: Blob }>({
+    left: new Blob(),
+    right: new Blob(),
+  });
   isCountdownFinishedRef.current = isCountdownFinished;
 
   const { workoutType, numberOfSet, numberOfRep, restInterval, isGuideVideo } =
@@ -89,11 +94,13 @@ export function MovenetV2() {
     rendererRef,
     customFpsPanelRef,
     rafIdRef,
-    mediaStreamInstanceRef,
+    mediaStreamInstanceRef: mediaStreamInstanceForLeftRef,
     canvasRef: outputCanvasRef,
     hasMovenetInitialized,
-    videoStreamChunksRef,
+    videoStreamChunksRef: videoStreamsForLeftVideoRef,
     canvasForRotateRef,
+    videoStreamsForRightVideoRef,
+    mediaStreamInstanceForRightRef,
   } = useRefsForMovenet();
 
   // Initialize useSpeachSynthesisApi
@@ -174,9 +181,12 @@ export function MovenetV2() {
         isGuideVideo: isGuideVideo.toString(),
       } as any).toString();
 
+      
       router.push(`/workout_done?${searchParams}`);
     } else {
-      setIsCountdownFinished(false);
+      // setTimeout(() => {
+      //   setIsCountdownFinished(false);
+      // }, 5000);
       currentWorkoutSetRef.current += 1;
       setRepCount(0);
     }
@@ -200,29 +210,86 @@ export function MovenetV2() {
   const actToken = useRef<String>("N/A");
   const currentSetCnt = useRef<number>(0);
   const startRecord = () => {
-    if (!video1Ref.current) return;
-    if (video1Ref.current.srcObject == null) return;
+    if (!video1Ref.current || !video2Ref.current) {
+      console.log("!video1Ref.current || !video2Ref.current");
 
-    const mediaStreamInstance = new MediaRecorder(
+      return;
+    }
+    if (
+      video1Ref.current.srcObject == null ||
+      video2Ref.current.srcObject == null
+    ) {
+      console.log(`video1Ref.current.srcObject == null
+      || video2Ref.current.srcObject == null`);
+
+      return;
+    }
+
+    console.log("startRecord가 정상 수행 시작");
+
+    const mediaRecoderForLeftVideo = new MediaRecorder(
       video1Ref.current.srcObject as MediaStream
     );
 
-    mediaStreamInstance.ondataavailable = (event) => {
-      videoStreamChunksRef.current.push(event.data);
+    const mediaRecoderForRightVideo = new MediaRecorder(
+      video2Ref.current.srcObject as MediaStream
+    );
+
+    mediaRecoderForLeftVideo.ondataavailable = (event) => {
+      videoStreamsForLeftVideoRef.current.push(event.data);
+    };
+
+    mediaRecoderForRightVideo.ondataavailable = (event) => {
+      videoStreamsForRightVideoRef.current.push(event.data);
+      // videoStreamChunksRef.current.push(event.data);
     };
 
     // onStop시 blob을 통해 videoStreamChunksRef 저장
-    mediaStreamInstance.onstop = async () => {
-      const blob = new Blob(videoStreamChunksRef.current);
-      curVideoBlobArr.current = blob;
+
+    mediaRecoderForRightVideo.onstop = async () => {
+      console.log("[fired] mediaRecoderForRightVideo.onstop");
+
+      const blob = new Blob(videoStreamsForRightVideoRef.current);
+      curVideoBlobArr.current.right = blob;
+      setRecordedVideoBlobArr((prev) => {
+        // const prevClone = { right : (...prev.right), left : ...(prev.left)};
+
+        const prevClone = { ...prev };
+        prevClone.right = [...prevClone.right, blob];
+        // const newArr = [...prev, blob];
+        return prevClone;
+      });
+      videoStreamsForRightVideoRef.current = [];
+
+      isMediaStreamDoneRef.current.right = true;
+      if (
+        isMediaStreamDoneRef.current.left &&
+        isMediaStreamDoneRef.current.right
+      ) {
+        isMediaStreamDoneRef.current.left = isMediaStreamDoneRef.current.right =
+          false;
+        setIsCountdownFinished(false);
+      }
+    };
+
+    mediaRecoderForLeftVideo.onstop = async () => {
+      console.log("[fired] mediaRecoderForLeftVideo.onstop");
+
+      const blob = new Blob(videoStreamsForLeftVideoRef.current);
+      curVideoBlobArr.current.left = blob;
+      // curVideoBlobArr.current = blob;
       console.log("onStop Blob Size " + blob);
-      console.log("onStop Blob Size " + curVideoBlobArr.current.size);
+      console.log("onStop Blob Size " + curVideoBlobArr.current.left.size);
 
       setRecordedVideoBlobArr((prev) => {
-        const newArr = [...prev, blob];
-        return newArr;
+        // const prevClone = { right : (...prev.right), left : ...(prev.left)};
+
+        const prevClone = { ...prev };
+        prevClone.left = [...prevClone.left, blob];
+        // const newArr = [...prev, blob];
+        return prevClone;
       });
-      videoStreamChunksRef.current = [];
+      videoStreamsForRightVideoRef.current = [];
 
       // actToken 최초 1회 초기화
       if (actToken.current == "N/A") {
@@ -244,7 +311,6 @@ export function MovenetV2() {
         "_" +
         currentSetCnt.current +
         ".mp4";
-
 
       // videoName을 전역 State에 저장
       setFileNameArray((prev) => {
@@ -280,16 +346,35 @@ export function MovenetV2() {
         .catch((error) => {
           console.log(error);
         });
+
+      isMediaStreamDoneRef.current.left = true;
+      if (
+        isMediaStreamDoneRef.current.left &&
+        isMediaStreamDoneRef.current.right
+      ) {
+        isMediaStreamDoneRef.current.left = isMediaStreamDoneRef.current.right =
+          false;
+        setIsCountdownFinished(false);
+      }
     };
 
     startTimeRef.current = performance.now();
 
-    mediaStreamInstance.start();
-    mediaStreamInstanceRef.current = mediaStreamInstance;
+    mediaRecoderForLeftVideo.start();
+    mediaStreamInstanceForLeftRef.current = mediaRecoderForLeftVideo;
+
+    mediaRecoderForRightVideo.start();
+    mediaStreamInstanceForRightRef.current = mediaRecoderForRightVideo;
+    // mediaStreamInstanceRef.current = mediaRecoderForRightVideo;
   };
 
   const stopRecord = () => {
-    if (mediaStreamInstanceRef.current) {
+    console.log("stopRecord가 호출됨");
+
+    if (
+      mediaStreamInstanceForLeftRef.current &&
+      mediaStreamInstanceForRightRef.current
+    ) {
       const workoutTimeSecond =
         (performance.now() - startTimeRef.current - 600) / 1000;
 
@@ -299,7 +384,9 @@ export function MovenetV2() {
         return prevClone;
       });
 
-      mediaStreamInstanceRef.current.stop();
+      mediaStreamInstanceForLeftRef.current.stop();
+      mediaStreamInstanceForRightRef.current.stop();
+      console.log("모든 mediaStream이 stop됨");
     } else {
       alert("[in stopRecord function] mediaStreamInstanceRef.current is null");
     }
@@ -564,24 +651,20 @@ export function MovenetV2() {
             {incorrectState.length > 0 && (
               <div className="z-[1000] relative">
                 <div
-                  className={
-                    "absolute border-4 border-[#fa6666] text-[#fa6666] bg-white text-center rounded-xl text-3xl font-bold px-6 py-2 w-[25%] left-0"
-                  }
+                  className={"absolute  border-4 border-[#fa6666] text-[#fa6666] bg-white text-center rounded-xl text-3xl font-bold px-6 py-2 w-[25%]"}
                   style={{
-                    top: `${73 * MODIFIER}dvh`,
+                    top: `${68 * MODIFIER}dvh`,
                     left:
-                      workoutType === "bench_press" && isGuideVideo
-                        ? `${25 * MODIFIER}dvw`
-                        : workoutType === "bench_press" && !isGuideVideo
-                          ? "50dvw"
-                          : isGuideVideo
-                            ? "35dvw"
-                            : "50dvw",
+                      
+                         workoutType === "bench_press"
+                        ? "27.5dvw"                        
+                        : "27.5dvw",
                     transform: "translateX(-50%)",
                     opacity: "0.7",
                   }}
                 >
                   {incorrectState === "SQUAT_KNEE" ? "무릎 주의 !" : ""}
+                  {/* {incorrectState === "SQUAT_KNEE" ? "무릎 주의 !" : "무릎 주의 !"} */}
                 </div>
               </div>
             )}
@@ -597,7 +680,10 @@ export function MovenetV2() {
               style={{ flex: "1 1 100%" }}
             >
               <div
-                className="fixed left-0 top-[20%]   flex justify-end items-center"
+                className={workoutType === "bench_press"?
+                 "fixed left-0 top-[20%]   flex justify-end items-center"
+                : "fixed left-[12%] top-[2%]   flex justify-end items-center"
+                }
                 style={{
                   justifyContent: isGuideVideo ? "end" : "center",
                   justifyItems: isGuideVideo ? "" : "center",
@@ -855,10 +941,12 @@ function useRefsForMovenet() {
   const rendererRef = useRef<RendererCanvas2d | null>(null);
   const customFpsPanelRef = useRef<Stats.Panel | null>(null);
   const rafIdRef = useRef<number | null>(null);
-  const mediaStreamInstanceRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamInstanceForLeftRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamInstanceForRightRef = useRef<MediaRecorder | null>(null);
   const outputCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const hasMovenetInitialized = useRef<boolean>(false);
-  const videoStreamChunksRef = useRef<BlobPart[]>([]);
+  const videoStreamsForLeftVideoRef = useRef<BlobPart[]>([]);
+  const videoStreamsForRightVideoRef = useRef<BlobPart[]>([]);
   const canvasForRotateRef = useRef<HTMLCanvasElement | null>(null);
 
   return {
@@ -876,11 +964,13 @@ function useRefsForMovenet() {
     rendererRef,
     customFpsPanelRef,
     rafIdRef,
-    mediaStreamInstanceRef,
+    mediaStreamInstanceRef: mediaStreamInstanceForLeftRef,
     canvasRef: outputCanvasRef,
     hasMovenetInitialized,
-    videoStreamChunksRef,
+    videoStreamChunksRef: videoStreamsForLeftVideoRef,
     canvasForRotateRef,
+    videoStreamsForRightVideoRef,
+    mediaStreamInstanceForRightRef,
   };
 }
 

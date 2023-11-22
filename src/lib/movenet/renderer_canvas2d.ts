@@ -105,20 +105,25 @@ export class RendererCanvas2d {
     const keypointInd = posedetection.util.getKeypointIndexBySide(
       params.STATE.model as posedetection.SupportedModels
     );
-    this.ctx.fillStyle = "Red";
-    this.ctx.strokeStyle = "White";
+    // this.ctx.fillStyle = "Red";
+    // this.ctx.strokeStyle = "White";
+    this.ctx.fillStyle = "#cff947"
+    this.ctx.strokeStyle = "#cff947"
+    
     this.ctx.lineWidth = params.DEFAULT_LINE_WIDTH;
 
     for (const i of keypointInd.middle) {
       this.drawKeypoint(keypoints[i]);
     }
 
-    this.ctx.fillStyle = "Green";
+    // this.ctx.fillStyle = "Green";
+    this.ctx.fillStyle = "#cff947"
     for (const i of keypointInd.left) {
       this.drawKeypoint(keypoints[i]);
     }
 
-    this.ctx.fillStyle = "Orange";
+    // this.ctx.fillStyle = "Orange";
+    this.ctx.fillStyle = "#cff947"
     for (const i of keypointInd.right) {
       this.drawKeypoint(keypoints[i]);
     }
@@ -146,7 +151,8 @@ export class RendererCanvas2d {
     const color =
       params.STATE.modelConfig.enableTracking && poseId != null
         ? COLOR_PALETTE[poseId % 20]
-        : "White";
+        // : "White";
+        : "#cff947" ; 
     this.ctx.fillStyle = color;
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = params.DEFAULT_LINE_WIDTH;
@@ -192,18 +198,26 @@ export class RendererCanvas2d {
     this.scatterGL.setPointColorer((i) => {
       if (keypoints[i] == null || keypoints[i].score! < scoreThreshold) {
         // hide anchor points and low-confident points.
-        return "#ffffff";
+        // return "#ffffff";
+        return "#cff947"
       }
       if (i === 0) {
-        return "#ff0000" /* Red */;
+        // return "#ff0000" /* Red */;
+        return "#cff947"
       }
       if (keypointInd.left.indexOf(i) > -1) {
-        return "#00ff00" /* Green */;
+        // return "#00ff00" /* Green */;
+        return "#cff947"
+
       }
       if (keypointInd.right.indexOf(i) > -1) {
-        return "#ffa500" /* Orange */;
+        // return "#ffa500" /* Orange */;
+        return "#cff947"
+
       }
-      return "#ffa500";
+      // return "#ffa500";
+      return "#cff947"
+
     });
 
     if (!this.scatterGLHasInitialized) {

@@ -61,7 +61,7 @@ export function Ready() {
 
   useEffect(function initialize() {
     (async () => {
-      setRecordedVideoBlobArr([]);
+      setRecordedVideoBlobArr({ left: [], right: [] });
       setWorkoutTimeArr([]);
       setFileNameArr([]);
       const res = await navigator.permissions.query({ name: "camera" as any });
@@ -154,7 +154,14 @@ export function Ready() {
                 defaultValue={options.workout_type}
               />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              ref={(ref) => {
+                if (!ref) return;
+                ref.ontouchstart = (e) => {
+                  e.preventDefault();
+                };
+              }}
+            >
               <SelectItem value="bench_press">Bench Press</SelectItem>
               <SelectItem value="deadlift">Deadlift</SelectItem>
               <SelectItem value="squat">Squat</SelectItem>
