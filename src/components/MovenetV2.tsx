@@ -174,12 +174,12 @@ export function MovenetV2() {
       guideVideoRef.current.currentTime = 0;
     }
 
-    isWorkoutDoneRef.current = true ;
     stopRecord();
 
 
 
     if (currentWorkoutSetRef.current + 1 > numberOfSet) {
+      isWorkoutDoneRef.current = true ;
       const searchParams = new URLSearchParams({
         numberOfSet,
         workoutType,

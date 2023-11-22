@@ -219,9 +219,9 @@ export function Countdown({
         <div className={"w-1/2 h-full relative flex flex-col"}>
           <video
             ref={videoRef}
-            className="border-[3px] border-[#cff947] absolute top-1/4 left-0 right-0 mx-auto"
+            className="rounded-xl border-[3px] border-[#cff947] absolute top-1/4 left-0 right-0 mx-auto"
             src={recordedVideoURL}
-            controls={false}
+            controls={false}            
             loop // Enable video looping
             style={{
               transform: `scaleX(-1) rotate(90deg) ${"translateX(-12px)"}`,
