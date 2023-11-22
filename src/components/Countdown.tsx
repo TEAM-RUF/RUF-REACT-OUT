@@ -29,6 +29,8 @@ export function Countdown({
   workoutType: WorkoutType;
   setIsCountdownFinished: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const prevVideosLastTime = useRef(0);
+
   const videoRef = useRef<HTMLVideoElement>(null!);
   const [recordedVideoURL, setRecordedVideoURL] = useState<string | undefined>(
     undefined
@@ -88,7 +90,11 @@ export function Countdown({
     setKeyForCountdown((prevKey) => prevKey + 1); // key 값을 증가시켜 타이머 리셋
   };
 
+  
   const changeCamera = () => {
+
+    prevVideosLastTime.current = videoRef.current.currentTime
+
     if(recordedVideoBlob) {
 
       setcurrentPlayedBlob((prev) => (prev === "LEFT" ? "RIGHT" : "LEFT"));
@@ -103,14 +109,20 @@ export function Countdown({
         setRecordedVideoURL(blobUrl);
     
         // Add an event listener to know when the video is loaded
-        videoRef.current.addEventListener("loadeddata", async () => {
-          try {
-            // Now that the video is loaded, you can safely play it
-            await videoRef.current?.play(); // Add a null check here as well
-          } catch (error) {
-            console.error("Error playing the video:", error);
-          }
-        });
+        // videoRef.current.addEventListener("loadeddata", async (e) => {
+        //   try {
+        //     // Now that the video is loaded, you can safely play it
+
+        //     if(videoRef.current) {
+        //       videoRef.current.currentTime = prevVideosLastTime.current
+        //     }
+        //     // prevVideosLastTime.current
+
+        //     await videoRef.current?.play(); // Add a null check here as well
+        //   } catch (error) {
+        //     console.error("Error playing the video:", error);
+        //   }
+        // });
     
      
     }
@@ -215,6 +227,21 @@ export function Countdown({
               transform: `scaleX(-1) rotate(90deg) ${"translateX(-12px)"}`,
             }}
             width={VIDEO_WIDTH / MODIFIER}
+
+            onLoadedData={async e => {
+              try {
+                // Now that the video is loaded, you can safely play it
+    
+                if(videoRef.current) {
+                  videoRef.current.currentTime = prevVideosLastTime.current
+                }
+                // prevVideosLastTime.current
+    
+                await videoRef.current?.play(); // Add a null check here as well
+              } catch (error) {
+                console.error("Error playing the video:", error);
+              }
+            }}
           ></video>
           <div
             className="absolute bottom-[2%] right-[5%] bg-[#383838] text-white py-4 px-16 font-bold rounded-xl"

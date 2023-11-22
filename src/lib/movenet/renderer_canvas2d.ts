@@ -39,6 +39,7 @@ export class RendererCanvas2d {
   scatterGLEl: HTMLDivElement;
   scatterGL: scatter.ScatterGL;
   scatterGLHasInitialized: boolean;
+  isGuideVideo : boolean
 
   constructor(canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext("2d")!;
@@ -52,6 +53,10 @@ export class RendererCanvas2d {
     this.videoWidth = canvas.width;
     this.videoHeight = canvas.height;
     this.flip(this.videoWidth, this.videoHeight);
+
+    const isGuideVideo =  (new URLSearchParams(window.location.search).get("isGuideVideo")) === "true" ? true : false ; 
+    this.isGuideVideo = isGuideVideo
+    
   }
 
   flip(videoWidth: number, videoHeight: number) {
@@ -71,9 +76,10 @@ export class RendererCanvas2d {
     // The null check makes sure the UI is not in the middle of changing to a
     // different model. If during model change, the result is from an old model,
     // which shouldn't be rendered.
-    
+
     // if (process.env.NODE_ENV === "development" && poses && poses.length > 0) {
-    if ( poses && poses.length > 0) {
+      
+    if (this.isGuideVideo && poses && poses.length > 0) {
       this.drawResults(poses);
     }
   }

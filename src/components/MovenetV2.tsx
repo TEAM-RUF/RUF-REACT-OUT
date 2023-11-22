@@ -61,6 +61,7 @@ export function MovenetV2() {
   const repCountRef = useRef<number>(repCount);
   repCountRef.current = repCount;
 
+  const isWorkoutDoneRef = useRef(false)
   const currentWorkoutSetRef = useRef<number>(1);
   const startTimeRef = useRef<number>(0);
   const [isCountdownFinished, setIsCountdownFinished] = useState(false);
@@ -173,6 +174,7 @@ export function MovenetV2() {
       guideVideoRef.current.currentTime = 0;
     }
 
+    isWorkoutDoneRef.current = true ;
     stopRecord();
 
 
@@ -270,7 +272,13 @@ export function MovenetV2() {
       ) {
         isMediaStreamDoneRef.current.left = isMediaStreamDoneRef.current.right =
           false;
-        setIsCountdownFinished(false);
+
+          if(isWorkoutDoneRef.current === false) {
+            setIsCountdownFinished(false);
+
+          }
+    
+    
       }
     };
 
@@ -301,7 +309,12 @@ export function MovenetV2() {
       ) {
         isMediaStreamDoneRef.current.left = isMediaStreamDoneRef.current.right =
           false;
-        setIsCountdownFinished(false);
+
+          if(isWorkoutDoneRef.current === false) {
+            setIsCountdownFinished(false);
+
+          }
+        // setIsCountdownFinished(false);
       }
 
 
@@ -442,6 +455,8 @@ export function MovenetV2() {
         localStorage.setItem("workoutState", "UP");
       }
       renderPrediction();
+      // if(isGuideVideo) {
+      // }
     })();
 
     async function renderPrediction() {
@@ -494,7 +509,7 @@ export function MovenetV2() {
           { maxPoses: 1 }
         );
 
-        if (poses && poses.at(0)) {
+        if (isGuideVideo && poses && poses.at(0)) {
           const keypoints = poses.at(0)!.keypoints!;
 
           let isCounterUp: boolean | null = null;
@@ -630,6 +645,8 @@ export function MovenetV2() {
   };
 
   const dropoutWorkout = () => {
+    isWorkoutDoneRef.current = true ;
+
     stopRecord();
     const searchParams = new URLSearchParams([
       ["numberOfSet", currentWorkoutSetRef.current!.toString()],
@@ -736,6 +753,7 @@ export function MovenetV2() {
                 >
                   {`${currentWorkoutSetRef.current} / ${numberOfSet} 세트`}
                 </div>
+                {isGuideVideo && 
                 <div
                   className="text-center bg-[#cff947] text-black px-5 py-3 mt-6 rounded-3xl text-xl font-bold"
                   style={{
@@ -746,6 +764,7 @@ export function MovenetV2() {
                     currentWorkoutSetRef.current - 1
                   )} 회`}
                 </div>
+                }
               </div>
 
               <div

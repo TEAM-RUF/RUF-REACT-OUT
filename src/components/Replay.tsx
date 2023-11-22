@@ -28,43 +28,124 @@ import { Slider } from "@/components/ui/slider";
 // import GuideVideo from "@/components/GuideVideo";
 // import QRCode from "qrcode-generator";
 
-export function ReplayImpl() {
+function useGetParams() {
   const searchParams = useSearchParams();
   const workoutType = searchParams.get("workoutType")!;
   const numberOfSet = parseInt(searchParams.get("numberOfSet")!);
   const isDropout = JSON.parse(searchParams.get("isDropout")!) as boolean;
   const isGuideVideo = JSON.parse(searchParams.get("isGuideVideo")!) as boolean;
-  const router = useRouter();
-  const [workoutTimeArr] = useAtom(workoutTimeArrAtom);
-  const [recordedVideoBlobObj, setRecordedVideoBlobArr] = useAtom(
+  return {
+    workoutType,
+    numberOfSet,
+    isDropout,
+    isGuideVideo,
+  };
+}
+
+function useRefs() {
+  const videoElementLeftRef = useRef<HTMLVideoElement >(null!);
+  const videoElementRightRef = useRef<HTMLVideoElement >(null!);
+  // const seekBarContainerRef = useRef<HTMLDivElement | null>(null!);
+  // const seekBarRef = useRef<HTMLDivElement>(null!);
+  const rafIdRef = useRef<number | null>(null);
+  return {
+    videoElementLeftRef,
+    videoElementRightRef,
+    // seekBarContainerRef,
+    // seekBarRef,
+    rafIdRef,
+  };
+}
+
+function useGlobalVariables() {
+  
+  const [globalWorkoutTimeArr] = useAtom(workoutTimeArrAtom);
+  const [globalRecordedVideoBlobObj, ] = useAtom(
     recordedVideoBlobArrAtom
   );
+  return {globalWorkoutTimeArr,
+    globalRecordedVideoBlobObj}
+}
 
-  const [videoKeyObj, setVideoKeyObj] = useState({
-    left: `${crypto.randomUUID()}-left`,
-    right: `${crypto.randomUUID()}-right`,
-  });
+export function ReplayImpl() {
+  // const searchParams = useSearchParams();
+  // const workoutType = searchParams.get("workoutType")!;
+  // const numberOfSet = parseInt(searchParams.get("numberOfSet")!);
+  // const isDropout = JSON.parse(searchParams.get("isDropout")!) as boolean;
+  // const isGuideVideo = JSON.parse(searchParams.get("isGuideVideo")!) as boolean;
 
-  const [fileNameArray, setFileNameArray] = useAtom(fileNameArrayAtom);
+  const { isDropout, isGuideVideo, numberOfSet, workoutType } = useGetParams();
+
+  const router = useRouter();
+
+  const {globalRecordedVideoBlobObj: recordedVideoBlobObj,globalWorkoutTimeArr: workoutTimeArr} = useGlobalVariables() 
+
+  // const [workoutTimeArr] = useAtom(workoutTimeArrAtom);
+  // const [recordedVideoBlobObj, ] = useAtom(
+  //   recordedVideoBlobArrAtom
+  // );
+
+  // const [videoKeyObj, setVideoKeyObj] = useState({
+  //   left: `${crypto.randomUUID()}-left`,
+  //   right: `${crypto.randomUUID()}-right`,
+  // });
+
+  // const [fileNameArray, setFileNameArray] = useAtom(fileNameArrayAtom);
+
   const [playState, setplayState] = useState<"PAUSE" | "PLAY">("PAUSE");
   const [seekValue, setSeekValue] = useState(0);
   const [isError, setIsError] = useState(false);
 
-  const [recordedVideoURLLeft, setRecordedVideoURLLeft] = useState<
-    string | null
-  >(null);
+  console.log('[playState]', playState);
+  
+  // const [recordedVideoURLLeft, setRecordedVideoURLLeft] = useState<
+  //   string | null
+  // >(null);
 
   const [recordedVideoURL, setRecordedVideoURL] = useState<{
     left: string | null;
     right: string | null;
-  }>({ left: null, right: null });
+  }>( () => {
+
+    if (recordedVideoBlobObj) {
+      const {left, right} = recordedVideoBlobObj
+      const [left1stBlob, right1stBlob] =  [left.at(0), right.at(0)];
+      // const right1stBlob = 
+
+      if (left1stBlob && right1stBlob) {
+        // const leftUrl = URL.createObjectURL(leftBlob);
+        // setRecordedVideoURLLeft(leftUrl) ;
+        // const rightUrl = URL.createObjectURL(rightBlob);
+        return { left: URL.createObjectURL(left1stBlob), right: URL.createObjectURL(right1stBlob) }
+        // setRecordedVideoURL({ left: URL.createObjectURL(leftBlob), right: URL.createObjectURL(rightBlob) });
+      } else {
+        setIsError(true);
+      }
+    } else {
+      setIsError(true);
+    }
+
+
+    return { left: null, right: null }
+  });
+
   const [currentSetIdx, setcurrentSetIdx] = useState<number>(0);
+
   const currentWorkoutSeconds = workoutTimeArr[currentSetIdx];
-  const videoElementLeftRef = useRef<HTMLVideoElement | null>(null!);
-  const videoElementRightRef = useRef<HTMLVideoElement | null>(null!);
-  const seekBarContainerRef = useRef<HTMLDivElement | null>(null);
-  const seekBarRef = useRef<HTMLDivElement | null>(null);
-  const rafIdRef = useRef<number | null>(null);
+
+  const {
+    rafIdRef,
+    // seekBarContainerRef,
+    // seekBarRef,
+    videoElementLeftRef,
+    videoElementRightRef,
+  } = useRefs();
+
+  // const videoElementLeftRef = useRef<HTMLVideoElement | null>(null!);
+  // const videoElementRightRef = useRef<HTMLVideoElement | null>(null!);
+  // const seekBarContainerRef = useRef<HTMLDivElement | null>(null);
+  // const seekBarRef = useRef<HTMLDivElement | null>(null);
+  // const rafIdRef = useRef<number | null>(null);
 
   useEffect(
     function initializeForPlay() {
@@ -79,78 +160,82 @@ export function ReplayImpl() {
   );
 
   useEffect(function initializeEventListener() {
-    const videoElementLeft = videoElementLeftRef.current;
-    const seekBarContainer = seekBarContainerRef.current;
-    const seekBar = seekBarRef.current;
+    // const videoElementLeft = videoElementLeftRef.current;
+    // const seekBarContainer = seekBarContainerRef.current;
+    // const seekBar = seekBarRef.current;
 
-    const updateSeekBar = () => {
-      if (videoElementLeft) {
-        const percentage =
-          (videoElementLeft.currentTime / currentWorkoutSeconds) * 100;
-        if (seekBar) {
-          seekBar.style.width = percentage + "%";
-        }
-      }
-    };
+    // const updateSeekBar = () => {
 
-    const seekVideo = (e: MouseEvent) => {
-      if (videoElementLeft && seekBarContainer) {
-        const offsetX =
-          e.clientX - seekBarContainer.getBoundingClientRect().left;
-        const percentage = offsetX / seekBarContainer.offsetWidth;
-        videoElementLeft.currentTime = percentage * currentWorkoutSeconds;
-      }
-    };
+    //   const videoElementLeft = videoElementLeftRef.current;
+    // const seekBarContainer = seekBarContainerRef.current;
+    // const seekBar = seekBarRef.current;
 
-    if (videoElementLeft) {
-      videoElementLeft.addEventListener("timeupdate", updateSeekBar);
-    }
+    //   if (videoElementLeft) {
+    //     const percentage =
+    //       (videoElementLeft.currentTime / currentWorkoutSeconds) * 100;
+    //     if (seekBar) {
+    //       seekBar.style.width = percentage + "%";
+    //     }
+    //   }
+    // };
 
-    if (seekBarContainer) {
-      seekBarContainer.addEventListener("click", seekVideo);
-    }
+    // const seekVideo = (e: MouseEvent) => {
 
-    return () => {
-      if (videoElementLeft) {
-        videoElementLeft.removeEventListener("timeupdate", updateSeekBar);
-      }
-      if (seekBarContainer) {
-        seekBarContainer.removeEventListener("click", seekVideo);
-      }
-    };
+    //   const videoElementLeft = videoElementLeftRef.current;
+    //   const seekBarContainer = seekBarContainerRef.current;
+    //   const seekBar = seekBarRef.current;
+  
+    //   if (videoElementLeft && seekBarContainer) {
+    //     const offsetX =
+    //       e.clientX - seekBarContainer.getBoundingClientRect().left;
+    //     const percentage = offsetX / seekBarContainer.offsetWidth;
+    //     videoElementLeft.currentTime = percentage * currentWorkoutSeconds;
+    //   }
+    // };
+
+    // if (videoElementLeft) {
+    //   videoElementLeft.addEventListener("timeupdate", updateSeekBar);
+    // }
+
+    // if (seekBarContainer) {
+    //   seekBarContainer.addEventListener("click", seekVideo);
+    // }
+
+    // return () => {
+    //   if (videoElementLeft) {
+    //     videoElementLeft.removeEventListener("timeupdate", updateSeekBar);
+    //   }
+    //   if (seekBarContainer) {
+    //     seekBarContainer.removeEventListener("click", seekVideo);
+    //   }
+    // };
   }, []);
 
-  useEffect(() => {
-    if (recordedVideoBlobObj) {
-      const leftBlob = recordedVideoBlobObj.left.at(0);
-      const rightBlob = recordedVideoBlobObj.right.at(0);
+  // useEffect(() => {
+  //   if (recordedVideoBlobObj) {
+  //     const leftBlob = recordedVideoBlobObj.left.at(0);
+  //     const rightBlob = recordedVideoBlobObj.right.at(0);
 
-      if (leftBlob && rightBlob) {
-        const leftUrl = URL.createObjectURL(leftBlob);
-        setRecordedVideoURLLeft(leftUrl) ;
-        const rightUrl = URL.createObjectURL(rightBlob);
-        setRecordedVideoURL({ left: leftUrl, right: rightUrl });
-      } else {
-        setIsError(true);
-      }
-    }
-  }, []);
+  //     if (leftBlob && rightBlob) {
+  //       // const leftUrl = URL.createObjectURL(leftBlob);
+  //       // setRecordedVideoURLLeft(leftUrl) ;
+  //       // const rightUrl = URL.createObjectURL(rightBlob);
+  //       setRecordedVideoURL({ left: URL.createObjectURL(leftBlob), right: URL.createObjectURL(rightBlob) });
+  //     } else {
+  //       setIsError(true);
+  //     }
+  //   }
+  // }, []);
 
-  const seekVideo = (e: number[]) => {
-    console.log("seekVideo");
-    console.log("e");
-    console.log(e);
+  const seekVideo = (seekArr: number[]) => {
 
     if (videoElementLeftRef.current && !isFinite(currentWorkoutSeconds)) return;
-    const percentage = e.at(0)!;
+    const percentage = seekArr.at(0)!;
     const targetTime = (percentage / 100) * currentWorkoutSeconds;
 
-    if (videoElementLeftRef.current) {
-      videoElementLeftRef.current.currentTime = targetTime;
-    }
-    if (videoElementRightRef.current) {
-      videoElementRightRef.current.currentTime = targetTime;
-    }
+    videoElementLeftRef.current.currentTime = targetTime;
+    
+    videoElementRightRef.current.currentTime = targetTime;
 
     setSeekValue(percentage);
     if (playState === "PLAY") {
@@ -210,11 +295,10 @@ export function ReplayImpl() {
 
     const leftBlob = recordedVideoBlobObj.left.at(workoutSetIndex);
 
-    if(leftBlob) {
-      const leftUrl =URL.createObjectURL(leftBlob)
-      setRecordedVideoURLLeft(leftUrl) ;
-
-    }
+    // if(leftBlob) {
+    //   const leftUrl =URL.createObjectURL(leftBlob)
+    //   setRecordedVideoURLLeft(leftUrl) ;
+    // }
 
     const rightBlob = recordedVideoBlobObj.right.at(workoutSetIndex);
 
@@ -225,10 +309,10 @@ export function ReplayImpl() {
         right: URL.createObjectURL(rightBlob),
       }));
 
-      setVideoKeyObj({
-        left: `${crypto.randomUUID()}-left`,
-        right: `${crypto.randomUUID()}-right`,
-      });
+      // setVideoKeyObj({
+      //   left: `${crypto.randomUUID()}-left`,
+      //   right: `${crypto.randomUUID()}-right`,
+      // });
 
       // 이하 로직은 비디오 로딩이 완료된 이후에 수행되어야 함
       setplayState("PAUSE");
@@ -236,9 +320,6 @@ export function ReplayImpl() {
       videoElementRightRef.current?.pause();
       videoElementLeftRef.current?.pause();
       seekVideo([0]);
-
-      
-
     } else {
       setIsError(true);
     }
@@ -255,6 +336,36 @@ export function ReplayImpl() {
       videoElementLeftRef.current?.play();
     }
   };
+
+  
+  // const updateSeekBar = () => {
+
+  //   const videoElementLeft = videoElementLeftRef.current;
+  // // const seekBarContainer = seekBarContainerRef.current;
+  // // const seekBar = seekBarRef.current;
+
+  //   if (videoElementLeft) {
+  //     const percentage =
+  //       (videoElementLeft.currentTime / currentWorkoutSeconds) * 100;
+  //     // if (seekBar) {
+  //     //   seekBar.style.width = percentage + "%";
+  //     // }
+  //   }
+  // };
+
+  // const triggerSeekVideo = (e: MouseEvent) => {
+
+  //   const videoElementLeft = videoElementLeftRef.current;
+  //   const seekBarContainer = seekBarContainerRef.current;
+  //   const seekBar = seekBarRef.current;
+
+  //   if (videoElementLeft && seekBarContainer) {
+  //     const offsetX =
+  //       e.clientX - seekBarContainer.getBoundingClientRect().left;
+  //     const percentage = offsetX / seekBarContainer.offsetWidth;
+  //     videoElementLeft.currentTime = percentage * currentWorkoutSeconds;
+  //   }
+  // };
 
   return (
     <>
@@ -311,9 +422,10 @@ export function ReplayImpl() {
           className="w-full"
           style={{
             boxSizing: "border-box",
+            overflow: "hidden",
           }}
         >
-          {!recordedVideoURLLeft || !recordedVideoURL.right || !recordedVideoURL.left || isError ? (
+          {!recordedVideoURL.right || !recordedVideoURL.left || isError ? (
             <div className="text-center flex flex-col gap-10 text-9xl font-bold">
               <div className="">오류가 발생했습니다</div>
               <div className="">
@@ -326,41 +438,38 @@ export function ReplayImpl() {
             </div>
           ) : (
             <>
-              <div className="flex">
-                <div className="z-[100] relative flex justify-center">
-                  <div className="w-full  flex justify-center items-center">
-                    <video
-                      src={recordedVideoURL.left}
-                      // src={recordedVideoURLLeft}
-                      ref={videoElementLeftRef}
-                      controls={false}
-                      onClick={switchPlayState}
-                      style={{
-                        transform: `scaleX(-1) rotate(90deg) ${"translateX(-12px)"}`,
-                      }}
-                      className="rounded-xl border-[3px] border-[#cff947]"
-                      width={VIDEO_WIDTH / MODIFIER}
-                    ></video>
-                  </div>
-                </div>
-                <div className="z-[100] relative flex justify-center">
-                  <div className="w-full  flex justify-center items-center">
-                    <video
-                      src={recordedVideoURL.right}
-                      ref={videoElementRightRef}
-                      // key={videoKeyObj.right}
-                      controls={false}
-                      onClick={switchPlayState}
-                      // onLoadedMetadata={handleMetadataLoaded}
-                      style={{
-                        transform: `scaleX(-1) rotate(90deg) ${"translateX(-12px)"}`,
-                      }}
-                      className="rounded-xl border-[3px] border-[#cff947]"
-                      width={VIDEO_WIDTH / MODIFIER}
-                    ></video>
-                  </div>
-                </div>
+              {/* <div className="absolute top-0 left-[25%]"> */}
+              <div className="absolute z-[100]  top-[22%] left-[-4%] flex justify-center">
+                <video
+                  src={recordedVideoURL.left}
+                  // src={recordedVideoURLLeft}
+                  ref={videoElementLeftRef}
+                  // onTimeUpdate={updateSeekBar}
+                  controls={false}
+                  onClick={switchPlayState}
+                  style={{
+                    transform: `scaleX(-1) rotate(90deg) `,
+                  }}
+                  className="w-[55vw] rounded-xl border-[3px] border-[#cff947]"
+                  width={VIDEO_WIDTH / MODIFIER}
+                ></video>
               </div>
+              <div className="absolute z-[100]  top-[22%] right-[-4%] flex justify-center">
+                <video
+                  src={recordedVideoURL.right}
+                  ref={videoElementRightRef}
+                  // key={videoKeyObj.right}
+                  controls={false}
+                  onClick={switchPlayState}
+                  // onLoadedMetadata={handleMetadataLoaded}
+                  style={{
+                    transform: `scaleX(-1) rotate(90deg)`,
+                  }}
+                  className="w-[55vw] rounded-xl border-[3px] border-[#cff947]"
+                  width={VIDEO_WIDTH / MODIFIER}
+                ></video>
+              </div>
+              {/* </div> */}
             </>
           )}
         </div>

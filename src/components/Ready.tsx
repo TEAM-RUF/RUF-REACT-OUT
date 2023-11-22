@@ -204,15 +204,15 @@ export function Ready() {
           </div>
           <div className="flex flex-1 gap-6">
             <div className="flex flex-col w-full items-start gap-6 ">
-              <div className="flex items-center h-full pl-[77%]">
+              <div className="flex items-center h-full pl-[75%]">
                 <div className="text-2xl font-bold text-[#d9d9d9]">세트 수</div>
               </div>
-              <div className="flex items-center h-full pl-[74%]">
+              <div className="flex items-center h-full pl-[72%]">
                 <div className="text-2xl font-bold text-[#d9d9d9]">
                   반복 횟수
                 </div>
               </div>
-              <div className="flex items-center h-full pl-[74%]">
+              <div className="flex items-center h-full pl-[72%]">
                 <div className="text-2xl font-bold text-[#d9d9d9]">
                   쉬는 시간
                 </div>
@@ -257,7 +257,7 @@ export function Ready() {
 
               <button
                 className="w-full text-xl font-bold py-4 rounded-lg bg-[#cff947] text-black cursor-pointer"
-                onClick={() => gotoNextPage({ isGuideVideo: false })}
+                onClick={() => gotoNextPage({ isGuideVideo: true })}
               >
                 AI와 운동하기
               </button>
@@ -268,7 +268,7 @@ export function Ready() {
 
               <button
                 className="w-full text-xl font-bold py-4 rounded-lg bg-[#393939] text-[#d9d9d9] cursor-pointer"
-                onClick={() => gotoNextPage({ isGuideVideo: true })}
+                onClick={() => gotoNextPage({ isGuideVideo: false })}
               >
                 자율 운동하기
               </button>
