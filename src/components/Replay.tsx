@@ -25,8 +25,8 @@ import {
 import { use, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Slider } from "@/components/ui/slider";
-import GuideVideo from "@/components/GuideVideo";
-import QRCode from "qrcode-generator";
+// import GuideVideo from "@/components/GuideVideo";
+// import QRCode from "qrcode-generator";
 
 export function ReplayImpl() {
   const searchParams = useSearchParams();
@@ -40,21 +40,28 @@ export function ReplayImpl() {
     recordedVideoBlobArrAtom
   );
 
-  
+  const [videoKeyObj, setVideoKeyObj] = useState({
+    left: `${crypto.randomUUID()}-left`,
+    right: `${crypto.randomUUID()}-right`,
+  });
 
   const [fileNameArray, setFileNameArray] = useAtom(fileNameArrayAtom);
   const [playState, setplayState] = useState<"PAUSE" | "PLAY">("PAUSE");
   const [seekValue, setSeekValue] = useState(0);
   const [isError, setIsError] = useState(false);
+
+  const [recordedVideoURLLeft, setRecordedVideoURLLeft] = useState<
+    string | null
+  >(null);
+
   const [recordedVideoURL, setRecordedVideoURL] = useState<{
     left: string | null;
     right: string | null;
   }>({ left: null, right: null });
   const [currentSetIdx, setcurrentSetIdx] = useState<number>(0);
   const currentWorkoutSeconds = workoutTimeArr[currentSetIdx];
-  // const videoElementRightRef = useRef<HTMLVideoElement>(null);
-  const videoElementLeftRef = useRef<HTMLVideoElement | null>(null);
-  const videoElementRightRef = useRef<HTMLVideoElement | null>(null);
+  const videoElementLeftRef = useRef<HTMLVideoElement | null>(null!);
+  const videoElementRightRef = useRef<HTMLVideoElement | null>(null!);
   const seekBarContainerRef = useRef<HTMLDivElement | null>(null);
   const seekBarRef = useRef<HTMLDivElement | null>(null);
   const rafIdRef = useRef<number | null>(null);
@@ -72,21 +79,21 @@ export function ReplayImpl() {
   );
 
   useEffect(function initializeEventListener() {
-    generateQRCode(fileNameArray[0]);
     const videoElementLeft = videoElementLeftRef.current;
     const seekBarContainer = seekBarContainerRef.current;
     const seekBar = seekBarRef.current;
 
     const updateSeekBar = () => {
       if (videoElementLeft) {
-        const percentage = (videoElementLeft.currentTime / currentWorkoutSeconds) * 100;
+        const percentage =
+          (videoElementLeft.currentTime / currentWorkoutSeconds) * 100;
         if (seekBar) {
           seekBar.style.width = percentage + "%";
         }
       }
     };
 
-    const seekVideo = (e : MouseEvent) => {
+    const seekVideo = (e: MouseEvent) => {
       if (videoElementLeft && seekBarContainer) {
         const offsetX =
           e.clientX - seekBarContainer.getBoundingClientRect().left;
@@ -117,36 +124,31 @@ export function ReplayImpl() {
     if (recordedVideoBlobObj) {
       const leftBlob = recordedVideoBlobObj.left.at(0);
       const rightBlob = recordedVideoBlobObj.right.at(0);
-      
 
       if (leftBlob && rightBlob) {
         const leftUrl = URL.createObjectURL(leftBlob);
+        setRecordedVideoURLLeft(leftUrl) ;
         const rightUrl = URL.createObjectURL(rightBlob);
         setRecordedVideoURL({ left: leftUrl, right: rightUrl });
       } else {
-        // console.log("에러 : leftBlob 또는 rightBlob가 없음 ");
-        // console.log({ leftBlob });
-        // console.log({ rightBlob });
-
         setIsError(true);
       }
     }
   }, []);
 
   const seekVideo = (e: number[]) => {
+    console.log("seekVideo");
+    console.log("e");
+    console.log(e);
+
     if (videoElementLeftRef.current && !isFinite(currentWorkoutSeconds)) return;
     const percentage = e.at(0)!;
     const targetTime = (percentage / 100) * currentWorkoutSeconds;
 
-    // if (videoElementLeftRef.current) {
-    //   videoElementLeftRef.current.currentTime = targetTime;
-    // }
-
-    if (videoElementLeftRef.current ){
+    if (videoElementLeftRef.current) {
       videoElementLeftRef.current.currentTime = targetTime;
-
     }
-    if ( videoElementRightRef.current) {
+    if (videoElementRightRef.current) {
       videoElementRightRef.current.currentTime = targetTime;
     }
 
@@ -194,146 +196,69 @@ export function ReplayImpl() {
   };
 
   const changeVideo = (value: string) => {
-    console.log('run changeVideo');
-    
+    console.log("run changeVideo");
+
     if (rafIdRef.current) {
       cancelAnimationFrame(rafIdRef.current);
     }
 
     const workoutSetIndex = parseInt(value) - 1;
 
-    // Video를 Chane할 때 해당 index로 filenameArray에서 filename 불러옴
-    // console.log(fileNameArray[workoutSetIndex]);
-    // generateQRCode(fileNameArray[workoutSetIndex]);
-    //
+    console.log({ workoutSetIndex });
 
     setcurrentSetIdx(workoutSetIndex);
 
     const leftBlob = recordedVideoBlobObj.left.at(workoutSetIndex);
+
+    if(leftBlob) {
+      const leftUrl =URL.createObjectURL(leftBlob)
+      setRecordedVideoURLLeft(leftUrl) ;
+
+    }
+
     const rightBlob = recordedVideoBlobObj.right.at(workoutSetIndex);
 
-    
-    
     if (leftBlob && rightBlob) {
-
-      // console.log("leftBlob.size");
-      // console.log(leftBlob.size);
-      // console.log("rightBlob.size");
-      // console.log(rightBlob.size);
-      
-      // const url = URL.createObjectURL(leftBlob);
-      setRecordedVideoURL(prev => ({
-        // ...prev,
+      setRecordedVideoURL((prev) => ({
+        ...prev,
         left: URL.createObjectURL(leftBlob),
         right: URL.createObjectURL(rightBlob),
       }));
+
+      setVideoKeyObj({
+        left: `${crypto.randomUUID()}-left`,
+        right: `${crypto.randomUUID()}-right`,
+      });
+
+      // 이하 로직은 비디오 로딩이 완료된 이후에 수행되어야 함
       setplayState("PAUSE");
       setSeekValue(0);
-      // videoElementRightRef.current!.currentTime = 0;
-      // videoElementLeftRef.current!.currentTime = 0;
-
       videoElementRightRef.current?.pause();
       videoElementLeftRef.current?.pause();
-      setTimeout(() => {
-        setplayState((prev) => {
+      seekVideo([0]);
 
-          console.log('before seekVideo');
-          
-          seekVideo([0])
-      //           videoElementRightRef.current!.currentTime = 0;
-      // videoElementLeftRef.current!.currentTime = 0;
-      //     videoElementRightRef.current?.play();
-      //     videoElementLeftRef.current?.play();
-          return "PLAY";
-        });
-      }, 1000);
+      
+
     } else {
       setIsError(true);
-    }
-  };
-
-  const handleMetadataLoaded = () => {
-    if(videoElementRightRef.current) {
-      videoElementRightRef.current.currentTime =0
-
-    }
-    if (videoElementLeftRef.current) {
-        videoElementLeftRef.current.currentTime = 0;
     }
   };
 
   const switchPlayState = () => {
     setplayState(playState === "PLAY" ? "PAUSE" : "PLAY");
 
-    if (
-      playState === "PLAY" 
-      
-    ) {
+    if (playState === "PLAY") {
       videoElementRightRef.current?.pause();
       videoElementLeftRef.current?.pause();
-    } else if (
-      playState === "PAUSE" 
-    ) {
+    } else if (playState === "PAUSE") {
       videoElementRightRef.current?.play();
       videoElementLeftRef.current?.play();
-    }
-  };
-
-  const qrCodeRef = useRef<HTMLCanvasElement>(null);
-
-  const generateQRCode = (filename: string) => {
-    const url =
-      process.env.NEXT_PUBLIC_BACKEND_HOST + "/video?filename=" + filename;
-
-    if (qrCodeRef.current) {
-      try {
-        const qr = QRCode(0, "L"); // QR 코드 생성
-        qr.addData(url);
-        qr.make();
-
-        // QR 코드 크기 설정
-        const size = 200; // 원하는 크기로 조정 (예: 200px)
-
-        // Canvas에 QR 코드 그리기
-        const canvas = qrCodeRef.current;
-        canvas.width = size; // Canvas의 폭 설정
-        canvas.height = size; // Canvas의 높이 설정
-        const context = canvas.getContext("2d");
-        if (context) {
-          const moduleCount = qr.getModuleCount();
-          const cellSize = size / moduleCount;
-
-          for (let row = 0; row < moduleCount; row++) {
-            for (let col = 0; col < moduleCount; col++) {
-              context.fillStyle = qr.isDark(row, col) ? "black" : "white";
-              context.fillRect(
-                col * cellSize,
-                row * cellSize,
-                cellSize,
-                cellSize
-              );
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error generating QR code:", error);
-      }
     }
   };
 
   return (
     <>
       <div className="z-[10000] bg-transparent fixed w-full bg-black flex flex-1 items-center">
-        {/* <canvas
-          ref={qrCodeRef}
-          id="qr-code"
-          style={{
-            position: "absolute",
-            top: "50px",
-            left: "10px",
-          }}
-        /> */}
-
         <div className="w-full">
           <Image src={Logo} alt="로고" width={100} />
           <br />
@@ -388,7 +313,7 @@ export function ReplayImpl() {
             boxSizing: "border-box",
           }}
         >
-          {!recordedVideoURL.right || !recordedVideoURL.left || isError ? (
+          {!recordedVideoURLLeft || !recordedVideoURL.right || !recordedVideoURL.left || isError ? (
             <div className="text-center flex flex-col gap-10 text-9xl font-bold">
               <div className="">오류가 발생했습니다</div>
               <div className="">
@@ -401,19 +326,19 @@ export function ReplayImpl() {
             </div>
           ) : (
             <>
-              <div className="flex gap-12">
+              <div className="flex">
                 <div className="z-[100] relative flex justify-center">
                   <div className="w-full  flex justify-center items-center">
                     <video
-                      onClick={switchPlayState}
-                      onLoadedMetadata={handleMetadataLoaded}
+                      src={recordedVideoURL.left}
+                      // src={recordedVideoURLLeft}
                       ref={videoElementLeftRef}
+                      controls={false}
+                      onClick={switchPlayState}
                       style={{
                         transform: `scaleX(-1) rotate(90deg) ${"translateX(-12px)"}`,
                       }}
-                      className="border-[3px] border-[#cff947]"
-                      src={recordedVideoURL.left}
-                      controls={false}
+                      className="rounded-xl border-[3px] border-[#cff947]"
                       width={VIDEO_WIDTH / MODIFIER}
                     ></video>
                   </div>
@@ -421,15 +346,16 @@ export function ReplayImpl() {
                 <div className="z-[100] relative flex justify-center">
                   <div className="w-full  flex justify-center items-center">
                     <video
-                      onClick={switchPlayState}
-                      onLoadedMetadata={handleMetadataLoaded}
+                      src={recordedVideoURL.right}
                       ref={videoElementRightRef}
+                      // key={videoKeyObj.right}
+                      controls={false}
+                      onClick={switchPlayState}
+                      // onLoadedMetadata={handleMetadataLoaded}
                       style={{
                         transform: `scaleX(-1) rotate(90deg) ${"translateX(-12px)"}`,
                       }}
-                      className="border-[3px] border-[#cff947]"
-                      src={recordedVideoURL.right}
-                      controls={false}
+                      className="rounded-xl border-[3px] border-[#cff947]"
                       width={VIDEO_WIDTH / MODIFIER}
                     ></video>
                   </div>
@@ -470,7 +396,6 @@ export function ReplayImpl() {
               step={0.01}
               onValueChange={seekVideo}
             />
-            
           </div>
           <div className="flex gap-6 justify-center">
             {[0.5, 1, 1.5].map((speed) => {
@@ -509,3 +434,14 @@ export function ReplayImpl() {
     </>
   );
 }
+
+const handleMetadataLoaded = () => {
+  // console.log("비디오가 정상 로드되었음");
+  // console.log("1234");
+  // if (videoElementRightRef.current) {
+  //   videoElementRightRef.current.currentTime = 0;
+  // }
+  // if (videoElementLeftRef.current) {
+  //   videoElementLeftRef.current.currentTime = 0;
+  // }
+};

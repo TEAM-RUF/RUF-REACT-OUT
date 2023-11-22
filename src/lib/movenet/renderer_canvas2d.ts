@@ -71,7 +71,9 @@ export class RendererCanvas2d {
     // The null check makes sure the UI is not in the middle of changing to a
     // different model. If during model change, the result is from an old model,
     // which shouldn't be rendered.
-    if (process.env.NODE_ENV === "development" && poses && poses.length > 0) {
+    
+    // if (process.env.NODE_ENV === "development" && poses && poses.length > 0) {
+    if ( poses && poses.length > 0) {
       this.drawResults(poses);
     }
   }

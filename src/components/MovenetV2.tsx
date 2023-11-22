@@ -26,6 +26,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { atom, useAtom } from "jotai";
 import {
   recordedVideoBlobArrAtom,
+  recordedLeftVideoBlobAtom as recordedLeftVideoBlobAtom,
+  recordedRightVideoBlobAtom as recordedRightVideoBlobAtom,
   workoutTimeArrAtom,
   fileNameArrayAtom,
 } from "@/lib/globalState/atom";
@@ -48,7 +50,10 @@ export function MovenetV2() {
   const [incorrectState, setIncorrectState] = useState<"SQUAT_KNEE" | "">("");
   const [mediaDeviceArr, setMediaDeviceArr] = useState<MediaDeviceInfo[]>([]);
   const router = useRouter();
-  const [, setRecordedVideoBlobArr] = useAtom(recordedVideoBlobArrAtom);
+  const [, setRecordedVideoBlobObj] = useAtom(recordedVideoBlobArrAtom);
+  // const [, setRecordedLeftVideoBlob] = useAtom(recordedLeftVideoBlobAtom);
+  // const [, setRecordedRightVideoBlob] = useAtom(recordedRightVideoBlobAtom);
+
   const [, setWorkoutTimeArr] = useAtom(workoutTimeArrAtom);
 
   const [isSetChanged, setIsSetChanged] = useState(false);
@@ -80,8 +85,8 @@ export function MovenetV2() {
     numberOfRepOfThisSetRef.current - repCountRef.current;
 
   const {
-    video1Ref,
-    video2Ref,
+    video1Ref: videoLeftRef,
+    video2Ref: videoRightRef,
     guideVideoRef,
     detectorRef,
     camera1Ref,
@@ -134,7 +139,10 @@ export function MovenetV2() {
 
       const secondDevice = videoDevices.at(-1);
       if (secondDevice) {
-        changeCamera({ deviceId: secondDevice.deviceId, videoRef: video2Ref });
+        changeCamera({
+          deviceId: secondDevice.deviceId,
+          videoRef: videoRightRef,
+        });
       }
     })();
   }, []);
@@ -167,11 +175,7 @@ export function MovenetV2() {
 
     stopRecord();
 
-    // // Next Step으로 넘어가기 전에 Blob 정보 저장
-    // const blob = new Blob(videoStreamChunksRef.current);
-    // curVideoBlobArr.current = blob;
-    // console.log("goToNextSet Blob Size " + blob);
-    // console.log("goToNextSet Blob Size " + curVideoBlobArr.current.size);
+
 
     if (currentWorkoutSetRef.current + 1 > numberOfSet) {
       const searchParams = new URLSearchParams({
@@ -181,12 +185,9 @@ export function MovenetV2() {
         isGuideVideo: isGuideVideo.toString(),
       } as any).toString();
 
-      
       router.push(`/workout_done?${searchParams}`);
     } else {
-      // setTimeout(() => {
-      //   setIsCountdownFinished(false);
-      // }, 5000);
+      
       currentWorkoutSetRef.current += 1;
       setRepCount(0);
     }
@@ -210,14 +211,14 @@ export function MovenetV2() {
   const actToken = useRef<String>("N/A");
   const currentSetCnt = useRef<number>(0);
   const startRecord = () => {
-    if (!video1Ref.current || !video2Ref.current) {
+    if (!videoLeftRef.current || !videoRightRef.current) {
       console.log("!video1Ref.current || !video2Ref.current");
 
       return;
     }
     if (
-      video1Ref.current.srcObject == null ||
-      video2Ref.current.srcObject == null
+      videoLeftRef.current.srcObject == null ||
+      videoRightRef.current.srcObject == null
     ) {
       console.log(`video1Ref.current.srcObject == null
       || video2Ref.current.srcObject == null`);
@@ -228,11 +229,11 @@ export function MovenetV2() {
     console.log("startRecord가 정상 수행 시작");
 
     const mediaRecoderForLeftVideo = new MediaRecorder(
-      video1Ref.current.srcObject as MediaStream
+      videoLeftRef.current.srcObject as MediaStream
     );
 
     const mediaRecoderForRightVideo = new MediaRecorder(
-      video2Ref.current.srcObject as MediaStream
+      videoRightRef.current.srcObject as MediaStream
     );
 
     mediaRecoderForLeftVideo.ondataavailable = (event) => {
@@ -251,7 +252,8 @@ export function MovenetV2() {
 
       const blob = new Blob(videoStreamsForRightVideoRef.current);
       curVideoBlobArr.current.right = blob;
-      setRecordedVideoBlobArr((prev) => {
+
+      setRecordedVideoBlobObj((prev) => {
         // const prevClone = { right : (...prev.right), left : ...(prev.left)};
 
         const prevClone = { ...prev };
@@ -275,21 +277,36 @@ export function MovenetV2() {
     mediaRecoderForLeftVideo.onstop = async () => {
       console.log("[fired] mediaRecoderForLeftVideo.onstop");
 
-      const blob = new Blob(videoStreamsForLeftVideoRef.current);
-      curVideoBlobArr.current.left = blob;
+      const leftBlob = new Blob(videoStreamsForLeftVideoRef.current);
+      curVideoBlobArr.current.left = leftBlob;
       // curVideoBlobArr.current = blob;
-      console.log("onStop Blob Size " + blob);
+      console.log("onStop Blob Size " + leftBlob);
       console.log("onStop Blob Size " + curVideoBlobArr.current.left.size);
 
-      setRecordedVideoBlobArr((prev) => {
+      // setRecordedLeftVideoBlob((prev) => [...prev, leftBlob]);
+      setRecordedVideoBlobObj((prev) => {
         // const prevClone = { right : (...prev.right), left : ...(prev.left)};
 
         const prevClone = { ...prev };
-        prevClone.left = [...prevClone.left, blob];
+        prevClone.left = [...prevClone.left, leftBlob];
         // const newArr = [...prev, blob];
         return prevClone;
       });
-      videoStreamsForRightVideoRef.current = [];
+      videoStreamsForLeftVideoRef.current = [];
+
+      isMediaStreamDoneRef.current.left = true;
+      if (
+        isMediaStreamDoneRef.current.left &&
+        isMediaStreamDoneRef.current.right
+      ) {
+        isMediaStreamDoneRef.current.left = isMediaStreamDoneRef.current.right =
+          false;
+        setIsCountdownFinished(false);
+      }
+
+
+
+
 
       // actToken 최초 1회 초기화
       if (actToken.current == "N/A") {
@@ -318,7 +335,9 @@ export function MovenetV2() {
         return newArr;
       });
 
-      const newVideoFile = new File([blob], videoName, { type: "video/mp4" });
+      const newVideoFile = new File([leftBlob], videoName, {
+        type: "video/mp4",
+      });
 
       //form-data body
       const formData = new FormData();
@@ -347,17 +366,10 @@ export function MovenetV2() {
           console.log(error);
         });
 
-      isMediaStreamDoneRef.current.left = true;
-      if (
-        isMediaStreamDoneRef.current.left &&
-        isMediaStreamDoneRef.current.right
-      ) {
-        isMediaStreamDoneRef.current.left = isMediaStreamDoneRef.current.right =
-          false;
-        setIsCountdownFinished(false);
-      }
+      
     };
 
+      
     startTimeRef.current = performance.now();
 
     mediaRecoderForLeftVideo.start();
@@ -365,11 +377,10 @@ export function MovenetV2() {
 
     mediaRecoderForRightVideo.start();
     mediaStreamInstanceForRightRef.current = mediaRecoderForRightVideo;
-    // mediaStreamInstanceRef.current = mediaRecoderForRightVideo;
+
   };
 
   const stopRecord = () => {
-    console.log("stopRecord가 호출됨");
 
     if (
       mediaStreamInstanceForLeftRef.current &&
@@ -388,6 +399,8 @@ export function MovenetV2() {
       mediaStreamInstanceForRightRef.current.stop();
       console.log("모든 mediaStream이 stop됨");
     } else {
+      
+      
       alert("[in stopRecord function] mediaStreamInstanceRef.current is null");
     }
   };
@@ -410,7 +423,7 @@ export function MovenetV2() {
         customFpsPanel,
       } = await settingMovenetV2({
         workoutType,
-        videoRef: video1Ref,
+        videoRef: videoLeftRef,
         outputCanvasRef: outputCanvasRef,
       });
       camera1Ref.current = camera;
@@ -439,9 +452,9 @@ export function MovenetV2() {
     }
 
     async function renderResult() {
-      if (video1Ref.current && video1Ref.current.readyState < 2) {
+      if (videoLeftRef.current && videoLeftRef.current.readyState < 2) {
         await new Promise((resolve) => {
-          video1Ref.current!.onloadeddata = () => {
+          videoLeftRef.current!.onloadeddata = () => {
             resolve(null);
           };
         });
@@ -450,11 +463,11 @@ export function MovenetV2() {
       let poses: null | Pose[] = null;
 
       if (workoutType === "bench_press") {
-        canvasForRotateRef.current!.width = video1Ref.current!.videoWidth;
-        canvasForRotateRef.current!.height = video1Ref.current!.videoHeight;
+        canvasForRotateRef.current!.width = videoLeftRef.current!.videoWidth;
+        canvasForRotateRef.current!.height = videoLeftRef.current!.videoHeight;
       } else {
-        canvasForRotateRef.current!.width = video1Ref.current!.videoHeight;
-        canvasForRotateRef.current!.height = video1Ref.current!.videoWidth;
+        canvasForRotateRef.current!.width = videoLeftRef.current!.videoHeight;
+        canvasForRotateRef.current!.height = videoLeftRef.current!.videoWidth;
       }
 
       const ctx = canvasForRotateRef.current!.getContext("2d")!;
@@ -464,17 +477,17 @@ export function MovenetV2() {
 
         if (workoutType === "bench_press") {
           ctx.translate(
-            video1Ref.current!.videoWidth,
-            video1Ref.current!.videoHeight
+            videoLeftRef.current!.videoWidth,
+            videoLeftRef.current!.videoHeight
           );
           ctx.rotate(Math.PI);
         } else {
           // 90도 회전
-          ctx.translate(video1Ref.current!.videoHeight, 0);
+          ctx.translate(videoLeftRef.current!.videoHeight, 0);
           ctx.rotate(Math.PI / 2);
         }
 
-        ctx.drawImage(video1Ref.current!, 0, 0);
+        ctx.drawImage(videoLeftRef.current!, 0, 0);
 
         poses = await detectorRef.current.estimatePoses(
           canvasForRotateRef.current!,
@@ -606,7 +619,7 @@ export function MovenetV2() {
   const changeCamera2nd = async (deviceId: string) => {
     console.log(deviceId);
 
-    changeCamera({ deviceId, videoRef: video2Ref });
+    changeCamera({ deviceId, videoRef: videoRightRef });
 
     // if (camera2Ref.current) {
     //   changeCamera({deviceId ,videoRef : video2Ref})
@@ -651,20 +664,17 @@ export function MovenetV2() {
             {incorrectState.length > 0 && (
               <div className="z-[1000] relative">
                 <div
-                  className={"absolute  border-4 border-[#fa6666] text-[#fa6666] bg-white text-center rounded-xl text-3xl font-bold px-6 py-2 w-[25%]"}
+                  className={
+                    "absolute  border-4 border-[#cff947] text-black bg-white text-center rounded-xl text-3xl font-[1000] px-6 py-2 w-[25%]"
+                  }
                   style={{
                     top: `${68 * MODIFIER}dvh`,
-                    left:
-                      
-                         workoutType === "bench_press"
-                        ? "27.5dvw"                        
-                        : "27.5dvw",
+                    left: workoutType === "bench_press" ? "27.5dvw" : "27.5dvw",
                     transform: "translateX(-50%)",
                     opacity: "0.7",
                   }}
                 >
                   {incorrectState === "SQUAT_KNEE" ? "무릎 주의 !" : ""}
-                  {/* {incorrectState === "SQUAT_KNEE" ? "무릎 주의 !" : "무릎 주의 !"} */}
                 </div>
               </div>
             )}
@@ -680,9 +690,10 @@ export function MovenetV2() {
               style={{ flex: "1 1 100%" }}
             >
               <div
-                className={workoutType === "bench_press"?
-                 "fixed left-0 top-[20%]   flex justify-end items-center"
-                : "fixed left-[12%] top-[2%]   flex justify-end items-center"
+                className={
+                  workoutType === "bench_press"
+                    ? "fixed left-0 top-[20%]   flex justify-end items-center"
+                    : "fixed left-[12%] top-[2%]   flex justify-end items-center"
                 }
                 style={{
                   justifyContent: isGuideVideo ? "end" : "center",
@@ -690,40 +701,11 @@ export function MovenetV2() {
                 }}
               >
                 <div className="canvas-wrapper" style={{}}>
-                  {/* <div
-                    className="relative w-[100%] z-[10]"
-                    style={{
-                      transform:
-                        workoutType === "bench_press"
-                          ? `translateY(-${
-                              200 * MULTIPLIER_BASED_ON_DEVICE_WIDTH
-                            }px)`
-                          : "",
-                    }}
-                  >
-                    <div
-                      className="absolute bg-black text-[#cff947] border-2 border-[#cff947] px-5 py-3 mt-6 rounded-3xl text-xl font-bold"
-                      style={{
-                        left: workoutType === "bench_press" ? "27%" : "5%",
-                      }}
-                    >
-                      {`${currentWorkoutSetRef.current} / ${numberOfSet} 세트`}
-                    </div>
-                    <div
-                      className="absolute bg-[#cff947] text-black px-5 py-3 mt-6 rounded-3xl text-xl font-bold"
-                      style={{
-                        right: workoutType === "bench_press" ? "27%" : "5%",
-                      }}
-                    >
-                      {`${repCount} / ${numberOfRep.at(
-                        currentWorkoutSetRef.current - 1
-                      )} 회`}
-                    </div>
-                  </div> */}
+                  
                   <canvas
                     ref={outputCanvasRef}
                     id="output"
-                    className="border-[3px] border-[#cff947]"
+                    className="border-[3px] border-[#cff947] rounded-xl"
                     style={{
                       transform:
                         workoutType === "bench_press" ? "rotate(90deg)" : "",
@@ -731,7 +713,7 @@ export function MovenetV2() {
                   ></canvas>
                   <video
                     id="video"
-                    ref={video1Ref}
+                    ref={videoLeftRef}
                     playsInline
                     style={{
                       display: "none",
@@ -774,49 +756,12 @@ export function MovenetV2() {
                 }}
               >
                 <div className="canvas-wrapper" style={{}}>
-                  {/* <div
-                    className="relative w-[100%] z-[10]"
-                    style={{
-                      transform:
-                        workoutType === "bench_press"
-                          ? `translateY(-${
-                              200 * MULTIPLIER_BASED_ON_DEVICE_WIDTH
-                            }px)`
-                          : "",
-                    }}
-                  >
-                    <div
-                      className="absolute bg-[#6a66fa] text-white px-5 py-3 mt-6 rounded-3xl text-xl font-bold"
-                      style={{
-                        left: workoutType === "bench_press" ? "27%" : "5%",
-                      }}
-                    >
-                      {`${currentWorkoutSetRef.current} / ${numberOfSet} 세트`}
-                    </div>
-                    <div
-                      className="absolute bg-[#6a66fa] text-white px-5 py-3 mt-6 rounded-3xl text-xl font-bold"
-                      style={{
-                        right: workoutType === "bench_press" ? "27%" : "5%",
-                      }}
-                    >
-                      {`${repCount} / ${numberOfRep.at(
-                        currentWorkoutSetRef.current - 1
-                      )} 회`}
-                    </div>
-                  </div> */}
-                  {/* <canvas
-                    ref={outputCanvasRef}
-                    id="output"
-                    className="border-[3px] border-[#0acf83]"
-                    style={{
-                      transform:
-                        workoutType === "bench_press" ? "rotate(90deg)" : "",
-                    }}
-                  ></canvas> */}
+                  
+                  
                   <video
                     id="video2"
-                    ref={video2Ref}
-                    className="border-[3px] border-[#cff947]"
+                    ref={videoRightRef}
+                    className="border-[3px] border-[#cff947] rounded-xl"
                     playsInline
                     style={{
                       transform: "rotate(90deg)",
@@ -825,14 +770,7 @@ export function MovenetV2() {
                   ></video>
                 </div>
               </div>
-              {/* {isGuideVideo && (
-                <div className="w-full">
-                  <GuideVideo
-                    guideVideoRef={guideVideoRef}
-                    workoutType={workoutType}
-                  />
-                </div>
-              )} */}
+              
             </div>
           </div>
           <div
